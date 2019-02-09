@@ -6,20 +6,16 @@ int currentLED = 0;
 
 void setup()
 {
-    Serial.begin(9600);
-    Serial.println("HI");
     pinMode(latchPin, OUTPUT);
     pinMode(dataPin, OUTPUT);
     pinMode(clockPin, OUTPUT);
 
     leds = 0;
+    Serial.begin(9600);
 }
 
 void loop()
 {
-    
-    // leds = 0;
-
     if (leds == 7)
     {
         leds = 0;
@@ -28,13 +24,11 @@ void loop()
     {
         leds++;
     }
-
-    // bitSet(leds, currentLED);
-
     Serial.println(leds);
+    
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, LSBFIRST, leds);
     digitalWrite(latchPin, HIGH);
 
-    delay(250);
+    delay(1000);
 }
