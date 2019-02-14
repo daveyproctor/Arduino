@@ -1,115 +1,73 @@
-// int dataPin2 = 10;
-// Set the pin for the latch, the clock pin for the storage registers in the 74HC595s
-int latchPin = 12;
-// Set the pin for the clock for the shift registers in the 74HC595s
+// Though we don't need to use the pinMode or digitalWrite functions,
+// indicating which pins are clock and data is necessary for the shiftOut function
+// that we need to communicate with the registers.
 int clockPin = 11;
-// Set this as the serial data going into the two registers, which goes into pin 14 of 74HC595 1
 int dataPin = 13;
-// Set up one data value for the rows and another for the columns.
-byte rowData = 0x00;
-byte columnData = 0x00;
 
-// byte data = 0;
-// int currentLED = 0;
+// Below is how we structure the data to send to the shift register
+// A number is a list of row values needed to display the digit
+// accompanied by the value necessary to turn on each column
+// according to the principles of persistence of vision.
+struct LCDNumber
+{
+  byte rowVal[5];
+};
+
+byte colList[5] = {0xFE, 0xFD, 0xFB, 0xF7, 0xEF};
+
+struct LCDNumber numbers[10] = {
+  {.rowVal = {0x3E, 0x51, 0x49, 0x45, 0x3E}},
+  {.rowVal = {0x00, 0x42, 0x7F, 0x40, 0x00}}, // 1
+  {.rowVal = {0x42, 0x61, 0x51, 0x49, 0x46}}, // 2
+  {.rowVal = {0x21, 0x41, 0x45, 0x4B, 0x31}}, // 3
+  {.rowVal = {0x18, 0x14, 0x12, 0x7F, 0x10}}, // 4
+  {.rowVal = {0x27, 0x45, 0x45, 0x45, 0x39}}, // 5
+  {.rowVal = {0x3C, 0x4A, 0x49, 0x49, 0x30}}, // 6
+  {.rowVal = {0x01, 0x71, 0x09, 0x05, 0x03}}, // 7
+  {.rowVal = {0x36, 0x49, 0x49, 0x49, 0x36}}, // 8
+  {.rowVal = {0x06, 0x49, 0x49, 0x29, 0x1E}} // 9
+  };
+
 
 void setup()
-{
-    // pinMode(dataPin2, OUTPUT);
-    
-    // Label each of the 3 pins as an output
-    pinMode(latchPin, OUTPUT);
-    pinMode(dataPin, OUTPUT);
-    pinMode(clockPin, OUTPUT);
-    
-    // Initialize one data value for the rows and another for the columns.
-    rowData = 0x00;
-    columnData = 0x00;
-    
-    
-    // byte leds = 0;
-    // Start the serial
-    Serial.begin(9600);
+{    
+    // Indicate every port as an output and set the default latch value to HIGH
+    DDRB = B11111111;
+    PORTB = B010000;
 }
 
+
+// This function sends out the appropriate LED information to the registers.
+void writeLED(char columnData, char rowData)
+{
+    PORTB = PORTB & B101111;
+    shiftOut(dataPin, clockPin, LSBFIRST, columnData);
+    // byte leds2 = 1;
+    shiftOut(dataPin, clockPin, LSBFIRST, rowData);
+    PORTB = PORTB | B010000;
+}
+
+// This function is looping through the 5 row values and column values needed
+// to display each digit on the LED array via persistence of vision.
+void writeNumber(int n)
+{
+  for (int i = 0; i < 5; i++)
+  {
+    char colVal = colList[i];
+    char rowVal = numbers[n].rowVal[i];
+    writeLED(colVal, rowVal);
+  }
+}
+
+
+// This function tells the microcontroller to count up from digits 0 to 9, wrapping around when finished.
 void loop()
 {
-    /* 
-       I think the way that this function should work is that one register
-       should hold the data for the 7 rows of the LED board -- which are active high
-       -- and the second should hold the data for the 5 columns of the LED board --
-       which are active low. On every latch cycle, the second shift register will turn on one row
-       with a data of value 11111110, 11111101, 11111011, 11110111, or 11101111, and the first register
-       will hold the data for which lights in the active row need to be turned on, byte values which are indicated
-       by the hexadecimal numbers in the font list included with our lab.
-       
-       We'd nest each number in a for loop, which would give the Arduino the necessary time
-       to properly display a for loop. Something like the below loop, but a bit more refined.
-     */
-    
-    // This is a rough idea of how I think we could get the Arduino to display a 0.
-    // Of course, it needs refining, as I don't think the data changing would occur in the right place.
-    int i;
-    for(i = 0, i <= 200, i++)
+  for (int i = 0; i < 10; i++)
+  {
+    for (int j = 0; j < 1000; j++)
     {
-        columnData = 0xFE; // First Column
-        rowData = 0x3E;
-        columnData = 0xFD; // Second Column
-        rowData = 0x51;
-        columnData = 0xFB; // Third Column
-        rowData = 0x49;
-        columnData = 0xF7; // Fourth Column
-        rowData = 0x45;
-        columnData = 0xEF; // Fifth Column
-        rowData = 0x3E;
-    } 
-    
-        
-    
-    
-    /*
-    if (leds == 7)
-    {
-        leds = 0;
+      writeNumber(i); 
     }
-    else
-    {
-        leds++;
-    }
-    Serial.println(leds);
-    */
-    
-    // latchPin is held at 0 for as long as we want to transmit information
-    
-    /* 
-       Working with the two registers in cascade, we send the data
-       intended for the second register first, and then the stuff
-       for the first register second. That way, when the data intended for the first
-       register gets sent, the stuff intended for the second one will get shifted to its
-       proper register.
-    */
-    
-    
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, leds);
-    // byte leds2 = 1;
-    shiftOut(dataPin2, clockPin, LSBFIRST, leds2);
-    digitalWrite(latchPin, HIGH);
-
-    delay(1000);
+  } 
 }
-
-/*	
-    Row values for the numbers we need, for future reference.
-
-    0x3E, 0x51, 0x49, 0x45, 0x3E,// 0
-	0x00, 0x42, 0x7F, 0x40, 0x00,// 1
-	0x42, 0x61, 0x51, 0x49, 0x46,// 2
-	0x21, 0x41, 0x45, 0x4B, 0x31,// 3
-	0x18, 0x14, 0x12, 0x7F, 0x10,// 4
-	0x27, 0x45, 0x45, 0x45, 0x39,// 5
-	0x3C, 0x4A, 0x49, 0x49, 0x30,// 6
-	0x01, 0x71, 0x09, 0x05, 0x03,// 7
-	0x36, 0x49, 0x49, 0x49, 0x36,// 8
-	0x06, 0x49, 0x49, 0x29, 0x1E,// 9
-*/
-
