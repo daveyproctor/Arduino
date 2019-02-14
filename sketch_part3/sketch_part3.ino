@@ -4,7 +4,7 @@
 int clockPin = 11;
 int dataPin = 13;
 // We also need a pin with which to track interrupts. It'll be active LOW.
-int interruptPin = 3;
+int interruptPin = 2;
 int state = 0;
 
 // Below is how we structure the data to send to the shift register
@@ -37,8 +37,10 @@ void setup()
     // Indicate every port as an output and set the default latch value to HIGH
     DDRB = B11111111;
     PORTB = B010000;
+    pinMode(interruptPin, INPUT);
     //Indicate to the microcontroller to switch to the function countDown when button is pressed.
-    attachInterrupt(digitalPinToInterrupt(interruptPin), handleButton, LOW);
+    attachInterrupt(digitalPinToInterrupt(interruptPin), handleButton, FALLING);
+    Serial.begin(9600);
 }
 
 
@@ -66,10 +68,20 @@ void writeNumber(int n)
 
 void handleButton()
 {
+//  Serial.print("Received interrupt. State: ");
+//  Serial.print(state);
+//  Serial.print("; PinVal:");
+//  Serial.println(digitalRead(interruptPin));
+
   // debounce
-  return;
-  
-  delay(100);
+  for (int i = 0; i < 100; i++)
+  {
+    if (digitalRead(interruptPin) == 1)
+    {
+      Serial.println("Debounced!");
+      return;
+    }
+  }
   
   if (state == 9)
   {
@@ -77,16 +89,20 @@ void handleButton()
   }
   else
   {
+    //Serial.println("  -- Changed state to: ");
     state++;
+    //Serial.print(state);
   }
+  for (int i = 0; i < 1000; i++)
+  {
+    writeNumber(state);
+  }
+  digitalWrite(interruptPin, LOW);
 }
 
 
 // This function tells the microcontroller to count up from digits 0 to 9, wrapping around when finished.
 void loop()
 {
-  for (int j = 0; j < 1000; j++)
-  {
-    writeNumber(state);
-  }
+  writeNumber(state);
 }
