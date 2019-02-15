@@ -1,10 +1,9 @@
-// Though we don't need to use the pinMode or digitalWrite functions,
-// indicating which pins are clock and data is necessary for the shiftOut function
-// that we need to communicate with the registers.
+// Initiate the pins for data transfer.
 int clockPin = 11;
+int latchPin = 12;
 int dataPin = 13;
 // We also need a pin with which to track interrupts. It'll be active LOW.
-int interruptPin = 2;
+int interruptPin = 3;
 int state = 0;
 
 // Below is how we structure the data to send to the shift register
@@ -35,11 +34,13 @@ struct LCDNumber numbers[10] = {
 void setup()
 {    
     // Indicate every port as an output and set the default latch value to HIGH
-    DDRB = B11111111;
-    PORTB = B010000;
-    pinMode(interruptPin, INPUT);
-    //Indicate to the microcontroller to switch to the function countDown when button is pressed.
-    attachInterrupt(digitalPinToInterrupt(interruptPin), handleButton, FALLING);
+    pinMode(clockPin, OUTPUT);
+    pinMode(latchPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);
+    //Also indicate the interrupt pin as an input.
+    pinMode(interruptPin, INPUT_PULLUP);
+    //Indicate to the microcontroller to switch to the function countDown when button is pressed and released.
+    attachInterrupt(digitalPinToInterrupt(interruptPin), handleButton, RISING);
     Serial.begin(9600);
 }
 
@@ -47,11 +48,11 @@ void setup()
 // This function sends out the appropriate LED information to the registers.
 void writeLED(char columnData, char rowData)
 {
-    PORTB = PORTB & B101111;
+    digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, LSBFIRST, columnData);
     // byte leds2 = 1;
     shiftOut(dataPin, clockPin, LSBFIRST, rowData);
-    PORTB = PORTB | B010000;
+    digitalWrite(latchPin, HIGH);
 }
 
 // This function is looping through the 5 row values and column values needed
@@ -68,20 +69,7 @@ void writeNumber(int n)
 
 void handleButton()
 {
-//  Serial.print("Received interrupt. State: ");
-//  Serial.print(state);
-//  Serial.print("; PinVal:");
-//  Serial.println(digitalRead(interruptPin));
-
-  // debounce
-  for (int i = 0; i < 100; i++)
-  {
-    if (digitalRead(interruptPin) == 1)
-    {
-      Serial.println("Debounced!");
-      return;
-    }
-  }
+  // Switch to the next number when the button is pressed.
   
   if (state == 9)
   {
@@ -93,15 +81,20 @@ void handleButton()
     state++;
     //Serial.print(state);
   }
-  for (int i = 0; i < 1000; i++)
+
+  //Change occurs on the rising edge, so debouncing occurs here.
+  
+  for (int i = 0; i < 1500; i++)
   {
     writeNumber(state);
   }
-  digitalWrite(interruptPin, LOW);
+  
+  delay(3000);
+  
 }
 
 
-// This function tells the microcontroller to count up from digits 0 to 9, wrapping around when finished.
+// This function tells the microcontroller to display the current digit.
 void loop()
 {
   writeNumber(state);
