@@ -19,10 +19,8 @@ void loop() {
       {
         i = 0;  // Reset the counter
         x = PIND; // Set the check variable equal to the input
-        Serial.println(PIND - 2); // Print the value of the input.
-        // The "-2" is a correction for our board: for whatever reason,
-        // pressing the button didn't cycle the high-and-low of the switch between 0 and 1,
-        // but rather 3 and 2.
+        Serial.println(B00000001 & PIND); // Print the value of the input.
+        // Use a bit mask to correct for values that we don't want to track and might interfere with results.
       }
     }
   }
