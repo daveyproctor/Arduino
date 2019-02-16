@@ -37,15 +37,18 @@ void setup()
 }
 
 
+
 // This function sends out the appropriate LED information to the registers.
 void writeLED(char columnData, char rowData)
 {
-    PORTB = PORTB & B101111;
-    shiftOut(dataPin, clockPin, LSBFIRST, columnData);
-    // byte leds2 = 1;
-    shiftOut(dataPin, clockPin, LSBFIRST, rowData);
-    PORTB = PORTB | B010000;
+    PORTB = PORTB & B101111; // Bring down the latch pin
+    //shiftOut(dataPin, clockPin, LSBFIRST, columnData);
+    void shiftout(columnData);
+    //shiftOut(dataPin, clockPin, LSBFIRST, rowData);
+    void shiftout(rowData);
+    PORTB = PORTB | B010000; // Bring up the latch pin
 }
+
 
 // This function is looping through the 5 row values and column values needed
 // to display each digit on the LED array via persistence of vision.
@@ -70,4 +73,18 @@ void loop()
       writeNumber(i); 
     }
   } 
+}
+
+void shiftout(byte dataOut) //Substitute shiftOut function
+{
+  for (int i = 0; i<8; i++) // Least significant digit first.
+  {
+    PORTB = PORTB & B110111 // Bring clock down
+    if (dataOut & (1<<i))
+        {
+          PORTB = PORTB | B100000 // Shift the dataPin high if the bit we want to output is high
+        }
+    else {PORTB = PORTB & B011111} // Shift the dataPin low if the bit we want to output is low
+    PORTB = PORTB | B001000 // Bring the clock up again
+  }
 }
