@@ -43,9 +43,9 @@ void writeLED(char columnData, char rowData)
 {
     PORTB = PORTB & B101111; // Bring down the latch pin
     //shiftOut(dataPin, clockPin, LSBFIRST, columnData);
-    void shiftout(columnData);
+    shiftout(columnData);
     //shiftOut(dataPin, clockPin, LSBFIRST, rowData);
-    void shiftout(rowData);
+    shiftout(rowData);
     PORTB = PORTB | B010000; // Bring up the latch pin
 }
 
