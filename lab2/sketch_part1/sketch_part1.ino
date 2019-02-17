@@ -1,3 +1,8 @@
+/*
+* Part 1 of the lab involves polling PIND for switch changes. 
+* Debouncing is done by ensuring consistent reads of the pin.
+*/
+
 void setup() {
   // https://forum.arduino.cc/index.php?topic=441955.0
   DDRD = DDRD | B11111110; // set PORTD pin 0 to input

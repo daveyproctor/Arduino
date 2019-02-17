@@ -1,3 +1,8 @@
+/*
+* We write digits 0-9 in a loop to the display.
+* An `LCDNumber` is an array of 2-byte row encodings that will be looped and masked via the `colList` in the function `writeNumber` which in turn uses `writeLED` and then `shiftOut`
+*/
+
 // Though we don't need to use the pinMode or digitalWrite functions,
 // indicating which pins are clock and data is necessary for the shiftOut function
 // that we need to communicate with the registers.
@@ -43,9 +48,9 @@ void writeLED(char columnData, char rowData)
 {
     PORTB = PORTB & B101111; // Bring down the latch pin
     //shiftOut(dataPin, clockPin, LSBFIRST, columnData);
-    shiftout(columnData);
+    myShiftOut(columnData);
     //shiftOut(dataPin, clockPin, LSBFIRST, rowData);
-    shiftout(rowData);
+    myShiftOut(rowData);
     PORTB = PORTB | B010000; // Bring up the latch pin
 }
 
@@ -75,7 +80,7 @@ void loop()
   } 
 }
 
-void shiftout(byte dataOut) //Substitute shiftOut function
+void myShiftOut(byte dataOut) //Substitute shiftOut function
 {
   for (int i = 0; i<8; i++) // Least significant digit first.
   {

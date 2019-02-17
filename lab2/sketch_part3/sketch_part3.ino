@@ -1,3 +1,9 @@
+/*
+* The same as Part 2, except now we additionally listen for button presses with an interrupt handler in order to increment the display digits.
+* The handler is called `handleButton`
+* Debouncing is done on the rising edge of the button press, in which we just consistently write the current number state.
+*/
+
 // Initiate the pins for data transfer.
 int clockPin = 11;
 int latchPin = 12;
@@ -49,9 +55,9 @@ void setup()
 void writeLED(char columnData, char rowData)
 {
     digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, columnData);
+    myShiftOut(dataPin, clockPin, LSBFIRST, columnData);
     // byte leds2 = 1;
-    shiftOut(dataPin, clockPin, LSBFIRST, rowData);
+    myShiftOut(dataPin, clockPin, LSBFIRST, rowData);
     digitalWrite(latchPin, HIGH);
 }
 
@@ -98,4 +104,23 @@ void handleButton()
 void loop()
 {
   writeNumber(state);
+}
+
+void myShiftOut(byte dataOut) //Substitute shiftOut function
+{
+  for (int i = 0; i<8; i++) // Least significant digit first.
+  {
+    PORTB = PORTB & B110111 // Bring clock down
+    if (dataOut & (1<<i))
+    {
+      // Shift the dataPin high if the bit we want to output is high
+      PORTB = PORTB | B100000 
+    }
+    else 
+    {
+        // Shift the dataPin low if the bit we want to output is low
+        PORTB = PORTB & B011111
+    }
+    PORTB = PORTB | B001000 // Bring the clock up again
+  }
 }
