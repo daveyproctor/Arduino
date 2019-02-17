@@ -1,20 +1,22 @@
 # Lab 2
 ## Directory structure:
 .
-├── Circuit_Schematic.jpg
-├── README.md
-├── demo.mp4
-├── sketch_part1
-│   └── sketch_part1.ino
-├── sketch_part2
-│   ├── new.txt
-│   ├── scrap.txt
-│   └── sketch_part2.ino
-└── sketch_part3
-    └── sketch_part3.ino
+|-- ./Circuit_Schematic.jpg
+|-- ./demo.mp4
+|-- ./cscope.files
+|-- ./README.md
+|-- ./cscope.out
+|-- ./sketch_part3
+|   `-- ./sketch_part3/sketch_part3.ino
+|-- ./sketch_part2
+|   |-- ./sketch_part2/scrap.txt
+|   |-- ./sketch_part2/new.txt
+|   `-- ./sketch_part2/sketch_part2.ino
+|-- ./sketch_part1
+|   `-- ./sketch_part1/sketch_part1.ino
 
 ## Part 1
-* Part 1 of the lab involves polling PIND for switch changes. 
+* Part 1 of the lab involves polling `PIND` for switch changes. 
 * Debouncing is done by ensuring consistent reads of the pin.
 
 ## Part 2
