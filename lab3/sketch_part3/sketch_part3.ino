@@ -122,6 +122,8 @@ void setup() {
   int botPosn[2] = {0,0};
   int botSpeed = 3;
   int botVel[2] = {1,1};
+
+  int decisionTime = 0;
   
   while (true){
     // Rotary
@@ -163,17 +165,22 @@ void setup() {
         display.drawPixel(position[0]+i, position[1]+j, WHITE);
       }
     }
-    
+
+    decisionTime += 1;
     // Bots
     for (int i = 0; i < 1; i++){
-      if (botPosn[i] < 0 || botPosn[i]+botHeight < position[1]){
-        // Start going up
-        botVel[i] = 1; // -botVel[i];
+      if (decisionTime == 8) {
+        decisionTime = 0;
+        if (botPosn[i] < 0 || botPosn[i]+botHeight < position[1]){
+          // Start going up
+          botVel[i] = 1; // -botVel[i];
+        }
+        else if (botPosn[i]+botHeight > SCREEN_HEIGHT || botPosn[i] > position[1]){
+          // Start going down
+          botVel[i] = -1;
+        }  
       }
-      else if (botPosn[i]+botHeight > SCREEN_HEIGHT || botPosn[i] > position[1]){
-        // Start going down
-        botVel[i] = -1;
-      }
+      
       botPosn[i] += botVel[i] * botSpeed;
       for (int j = 0; j < botHeight; j++){
         display.drawPixel(1+i*(SCREEN_WIDTH-3), botPosn[i]+j, WHITE);
