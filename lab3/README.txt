@@ -30,8 +30,8 @@ analogRead(A0) Implementation:
   ADMUX Also controls the ADC's reference voltage with its top 2, which by default is 5 volts and is selected by the code 01.
   The presentation of the data is also controlled by the ADMUX with the third highest bit, but the Arduino sets this to 0 automatically.
   
-  To enable the conversion to happen, we need to set the ADSC bit, the 2nd highest bit in the ADCSRA register.
-  It will clear itself when the conversion is done. There are other important bits in this register, 
+  To enable the conversion to happen, we need to set the ADSC and ADEN bits, the 2 highest bits in the ADCSRA register.
+  ADSC clear itself when the conversion is done. There are other important bits in this register, 
   but they are either handled for us or have no use in the Arduino software. 
   
   With all this in mind, an implementation of analogRead(A0) -- reading in from the
@@ -39,10 +39,10 @@ analogRead(A0) Implementation:
   
   // Set ADMUX to select the 0th port and have the default reference voltage
   ADMUX = ((01 << 6) | (0x00));
-  // Set ADSC
-  sbi(ADCSRA, 6);
+  // Set ADSC and ADEN
+  ADCSRA = (ADCSRA | B11000000);
   // Wait until the conversion is done
-  while ((ADCSRA) & (1 << 6));
+  while ((ADCSRA) & (1 << 6)) {};
   // Return the value as a combination of the ADCL and ADCH.
   // ADCL needs to be read first, otherwise it will get overwritten.
   byte valLower = ADCL;
