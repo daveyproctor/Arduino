@@ -1,6 +1,6 @@
 /* 
 A method of implementing analogRead(A0) below is detailed 
-in the README under the "analogRead() Implementation" section
+in the README under the "analogRead(A0) Implementation" section.
 */
 
 int i = 0;  // The variables i and j are counter variables used for printing out
