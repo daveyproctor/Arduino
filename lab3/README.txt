@@ -17,6 +17,7 @@ Relevant Datasheets, Documentation, and Other Information:
 - Adafruit SSD1306 and GFX libraries utilized for Part 3: 
        https://cdn-learn.adafruit.com/downloads/pdf/adafruit-gfx-graphics-library.pdf
 - Help with implementing the Rotary Encoder in Arduino:
+       http://arduinotronics.blogspot.com/2013/09/using-rotary-encoder-with-arduino.html
        
 -----------------------------------------------------------------------------------------
 analogRead(A0) Implementation:
@@ -48,4 +49,3 @@ analogRead(A0) Implementation:
   byte valHigher = ADCH;
   // Combine ADCL and ADCH into an int.
   int val = (valHigher << 8) | valLower;
-  
