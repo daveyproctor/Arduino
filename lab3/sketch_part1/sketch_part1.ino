@@ -1,3 +1,8 @@
+/* 
+A method of implementing analogRead(A0) below is detailed 
+in the README under the "analogRead() Implementation" section
+*/
+
 int i = 0;  // The variables i and j are counter variables used for printing out
 int j = 0;  // the recorded brightness of the photoresistor every second.
 
