@@ -6,9 +6,6 @@
  **************************************************************************
  */
 
-#define BLUE 6
-#define YELLOW 8
-#define GREEN 10
 
 #ifndef __CONCURRENCY_H__
 #define __CONCURRENCY_H__
@@ -17,6 +14,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum Colors {BLUE=6, YELLOW=8, GREEN=10, WHITE=12};
 
 typedef struct process_state process_t;
    /* opaque definition of process type; you must provide this
@@ -50,13 +49,14 @@ int process_create (void (*f)(void), int n);
 
 /* ===== Part 2 ====== */
 
-// typedef struct lock_state lock_t;
+typedef struct lock_state lock_t;
   /* you have to define the lock_state structure */
-typedef struct lock_state {
+// lock structure
+struct lock_state {
     struct process_state *holder;
     struct process_state *headWaitingQueue;
     struct process_state *tailWaitingQueue;
-} lock_t;
+};
 
 void lock_init (lock_t *l);
 void lock_acquire (lock_t *l);

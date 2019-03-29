@@ -6,10 +6,8 @@
 /*
  * processes
  */
-#define READY 1
-#define WAITING 2
 
-process_t *current_process = NULL;
+enum State{RUNNING, READY, WAITING, DEAD};
 
 struct process_state {
 	unsigned int sp; /* stack pointer */
@@ -17,21 +15,77 @@ struct process_state {
 	int state;
 };
 
+// RUNNING process
+process_t *current_process = NULL;
+
+/*
+ * Process queue for READY and WAITING
+ */
+typedef struct process_queue process_queue_t;
+struct process_queue {
+    unsigned int len;
+    struct process_state *head;
+    struct process_state *tail;
+};
+
+process_queue_t *readyQueue = NULL;
+
+void queueInit(process_queue_t *Q){
+    Q->len = 0;
+    Q->head = NULL;
+    Q->tail = NULL;
+}
+
+void enqueue(process_queue_t *Q, process_t *p){
+    if (Q->len == 0) {
+        Q->head = p;
+        Q->tail = p;
+        Q->len = 1;
+    } else {
+        Q->tail->next = p;
+        Q->len++;
+    }
+}
+
+struct process_t *dequeue(process_queue_t *Q){
+    if (Q->len == 0) {
+        return NULL;
+    } 
+    process_t *popped = Q->head;
+    if (Q->len == 1) {
+        Q->head = NULL;
+        Q->tail = NULL;
+    } else {
+        Q->head = popped->next;
+    }
+    Q->len--;
+    return popped;
+}
+
 int process_create (void (*f) (void), int n) {
 	asm volatile ("cli\n\t");
-	struct process_state *p_state = malloc(sizeof(struct process_state));
+    if (readyQueue == NULL){
+        readyQueue = malloc(sizeof(process_queue_t));
+        queueInit(readyQueue);
+    }
+	struct process_state *p_state = malloc(sizeof(process_t));
 	if (!p_state){
 		return -1;
 	}
 	p_state->sp = process_init(f, n);
-	p_state->next = current_process;
 	p_state->state = READY;
-	current_process = p_state;
+    enqueue(readyQueue, p_state);
+	// p_state->next = current_process;
+	// current_process = p_state;
 	asm volatile ("sei\n\t");
 }
 
 void process_start (void){
-	// digitalWrite(BLUE, 0);
+    current_process = dequeue(readyQueue);
+    if (current_process == NULL){
+        return;
+    }
+    current_process->state = RUNNING;
 	process_begin();
 }
 struct process_state *readyQueueEnd(void){
@@ -309,6 +363,7 @@ unsigned int process_init (void (*f) (void), int n) // n0
 
 // Locks
 
+/*
 // Initialize a new waiting queue
 void lock_init (lock_t *l){
 	asm volatile ("cli\n\t");
@@ -352,7 +407,7 @@ void lock_release (lock_t *l){
 	nextHolder->state = READY;
 	asm volatile ("sei\n\t");
 }
-
+*/
 
 
 
