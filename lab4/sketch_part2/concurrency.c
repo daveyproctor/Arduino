@@ -75,12 +75,11 @@ int process_create (void (*f) (void), int n) {
 	p_state->sp = process_init(f, n);
 	p_state->state = READY;
     enqueue(readyQueue, p_state);
-	// p_state->next = current_process;
-	// current_process = p_state;
 	asm volatile ("sei\n\t");
 }
 
 void process_start (void){
+	asm volatile ("cli\n\t");
     current_process = dequeue(readyQueue);
     if (current_process == NULL){
         return;
@@ -88,14 +87,7 @@ void process_start (void){
     current_process->state = RUNNING;
 	process_begin();
 }
-struct process_state *readyQueueEnd(void){
-    if (!current_process){
-		return 0;
-	}
-    struct process_state *end;
-    for (end = current_process; end->next != NULL; end = end->next);
-    return end;
-}
+
 /*
  * Additionally need to re-queue current process; not if process_begin though.
  */
@@ -104,10 +96,9 @@ unsigned int process_select (unsigned int cursp) {
         // This is the stack pointer of setup.
         // We either just began or a process has terminated.
 	}
-  if (!current_process){
+    if (!current_process){
 		return 0;
 	}
-
 	return current_process->sp;
 }
 
