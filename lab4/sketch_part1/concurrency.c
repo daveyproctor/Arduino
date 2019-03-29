@@ -14,9 +14,7 @@ struct process_state {
 };
 
 int process_create (void (*f) (void), int n) {
-	// Serial.println("Process creating");
 	asm volatile ("cli\n\t");
-	// digitalWrite(BLUE, 1);
 	struct process_state *p_state = malloc(sizeof(struct process_state));
 	if (!p_state){
 		return -1;
@@ -38,16 +36,12 @@ unsigned int process_select (unsigned int cursp) {
 	if (cursp == 0){
         // This is the stack pointer of setup.
         // We either just began or a process has terminated.
-        digitalWrite(GREEN, 1); // -- yes
-        digitalWrite(GREEN, 0); // -- no, only once
-		// return 0;
 	}
     if (!current_process){
-        // digitalWrite(GREEN, 1); // -- no
 		return 0;
 	}
-    // digitalWrite(GREEN, 1); -- also yes
 
+    // Move current process to end, round robin style
     // Should work for just one process, too.
     struct process_state *end;
     for (end = current_process; end->next != NULL; end = end->next);
@@ -56,16 +50,10 @@ unsigned int process_select (unsigned int cursp) {
     current_process = current_process->next;
     end->next = NULL;
     return current_process->sp;
-
-    
-    // struct process_state tmp = current_process;
-	// current_process->next->next = current_process;
-	// current_process = current_process->next;
-	// current_process->next->next = NULL;
 }
 
 // these represent the main "setup"'s stack pointer. After process_begin happens,
-// these values become the stack pointer iff a process terminates
+// these values become the stack pointer whenever a process terminates
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 /*
@@ -75,8 +63,6 @@ __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
  */
 __attribute__((used)) void process_begin ()
 {
-//   digitalWrite(GREEN, 1); // -- yes
-//   digitalWrite(GREEN, 0); // -- no, so process not iterating. Good.
   asm volatile (
 		"cli \n\t"
 		"in r24,__SP_L__ \n\t"     // r24 <- __SP_L__
@@ -91,8 +77,6 @@ __attribute__((used)) void process_begin ()
 
 __attribute__((used)) void process_terminated ()
 {
-    //   digitalWrite(GREEN, 1); // -- no
-
   asm volatile ("cli\n\t");
   // Remove current_process from queue
   struct process_state *tmp = current_process;
@@ -121,7 +105,6 @@ void process_timer_interrupt();
 __attribute__((used)) void yield ()
 {
   if (!current_process) {
-    //   digitalWrite(GREEN, 1); -- yes
       return;
   }
   asm volatile ("cli\n\t");
@@ -177,10 +160,6 @@ __attribute__((used)) void process_timer_interrupt()
 		"or r18,r24\n\t"  // r18 <- r24                  
 		"or r18,r25\n\t"  // add one's of r25 into r18
 		// ^ we just tested if r24 = r25 =(?) 0; this is the case where we have no next process
-        // EDGE CASE: 0111^0111
-        //            |--| |--|
-        //            r25  r24
-        // Could be a valid stack pointer but still brne passes "equal"
 		"brne .label_resume\n\t"
 		// Assuming no next process, load orig stack pointer
 		// No need to pop stack?
@@ -189,17 +168,15 @@ __attribute__((used)) void process_timer_interrupt()
 		"lds r24, _orig_sp_lo\n\t"
 		"out __SP_L__, r24\n\t"
 		// return -- interrupts still disabled?
-		// I think we can keep interrupts on in this case cuz we'll go back up through yield().
-		// Functions written in C have implicit reti at the end?
+        // I think this move is to keep our sanity in this assignment  - don't keep calling yield if you just told me there were no processes to be selected; come back into main's loop() and go from there.
 		"ret\n\t"
 		".label_resume:\n\t" // Should be called "next_process_resume"
 		// Crux of the context switch
+        // Takes return value of process_select
 		"out __SP_L__, r24\n\t" // __SP_L__ <- r24
 		"out __SP_H__, r25\n\t"
-		// Exact opposite of proc_init for instance,
-		// or also process_timer_interrupt beginning.
-		// We assume SREG is at the top of the stack (bottom if growing downward)
-        
+		// Symmetric to proc_init and process_timer_interrupt beginning.
+        //
         /* Suppose this process has previously run; had been interrupted; is now selected via process_select: */
         //    REFERENCE            DATA                        SIZE
         // ------------------------------------------------------------
