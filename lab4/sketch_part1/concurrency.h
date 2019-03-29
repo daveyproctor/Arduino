@@ -6,6 +6,10 @@
  **************************************************************************
  */
 
+#define BLUE 6
+#define YELLOW 8
+#define GREEN 10
+
 #ifndef __CONCURRENCY_H__
 #define __CONCURRENCY_H__
 
