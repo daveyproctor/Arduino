@@ -60,7 +60,7 @@ void lock_release (lock_t *l);
 
 /*-- functions provided in the .c file --*/
 
-unsigned int process_init (void (*f) (void), int n);
+unsigned int process_init (void (*f) (void), int n, process_t *p);
 void process_begin ();
 void yield ();
 

@@ -35,6 +35,13 @@ int queueTest(int n);
 extern process_t *current_process; 
 /* the currently running process */
 
+typedef struct process_queue process_queue_t;
+struct process_queue {
+    unsigned int len;
+    struct process_state *head;
+    struct process_state *tail;
+};
+
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
@@ -54,9 +61,8 @@ typedef struct lock_state lock_t;
   /* you have to define the lock_state structure */
 // lock structure
 struct lock_state {
-    struct process_state *holder;
-    struct process_state *headWaitingQueue;
-    struct process_state *tailWaitingQueue;
+    process_t *holder;
+    process_queue_t *waitingQueue;
 };
 
 void lock_init (lock_t *l);

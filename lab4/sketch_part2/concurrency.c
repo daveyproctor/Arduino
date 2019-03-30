@@ -29,13 +29,6 @@ process_t *current_process = NULL;
 /*
  * Process queue for READY and WAITING
  */
-typedef struct process_queue process_queue_t;
-struct process_queue {
-    unsigned int len;
-    struct process_state *head;
-    struct process_state *tail;
-};
-
 process_queue_t *readyQueue = NULL;
 process_queue_t *testQueue = NULL;
 
@@ -136,7 +129,7 @@ void process_start (void){
 	asm volatile ("cli\n\t");
     digitalWrite(WHITE, 0);
     current_process = dequeue(readyQueue);
-    if (current_process == NULL){
+    if (current_process == NULL || current_process->state != READY){
         return;
     }
     current_process->state = RUNNING;
@@ -146,15 +139,26 @@ void process_start (void){
 /*
  */
 unsigned int process_select (unsigned int cursp) {
-    // digitalWrite(BLUE, 1);
-    // digitalWrite(BLUE, 0); // happens just once
-	if (cursp == 0 || current_process == NULL){
+	if (cursp == 0){
+        // This is the stack pointer of setup.
+    }
+    if (current_process == NULL){
         // All processes done, let's go home to "main"
 		return 0;
 	}
     if (current_process->state != RUNNING){
         // Error
         digitalWrite(WHITE, 1);
+        if (current_process->state == DEAD){
+            digitalWrite(WHITE, 1);
+        }
+        if (current_process->state == READY){
+            digitalWrite(WHITE, 1);
+        }
+        if (current_process->state == WAITING){
+            digitalWrite(WHITE, 1);
+        }
+		return 0;
     }
 	return current_process->sp;
 }
@@ -168,8 +172,10 @@ __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
  * Save current stack pointer
  * Jump to .dead_proc_entry which pops stack
  */
+int begun = 0;
 __attribute__((used)) void process_begin ()
 {
+    begun = 1;
     asm volatile (
         "cli \n\t"
         "in r24,__SP_L__ \n\t"     // r24 <- __SP_L__
@@ -184,20 +190,20 @@ __attribute__((used)) void process_begin ()
 
 __attribute__((used)) void process_terminated ()
 {
-    // digitalWrite(WHITE, 1); -- no
     asm volatile ("cli\n\t");
-    current_process->state = DEAD;
-    yield();
+    // current_process->state = DEAD;
+    process_destroy(current_process);
+    free(current_process);
+    current_process = dequeue(readyQueue);
+    asm volatile ("rjmp process_timer_interrupt\n\t");
 }
 
 void process_timer_interrupt();
 
 __attribute__((used)) void yield ()
 {
-    // digitalWrite(WHITE, 1); - not repeating; not getting to yield.
     if (current_process == NULL) {
         // Haven't even called process_start yet
-        // digitalWrite(WHITE, 1); -- doesn't happen incorrectly
         return;
     }
     asm volatile ("cli\n\t");
@@ -208,19 +214,15 @@ __attribute__((used)) void yield ()
         current_process->state = READY;
         enqueue(readyQueue, current_process);
     } else if (current_process->state == WAITING){
-    	// On a waiting queue
-    } else if (current_process->state == DEAD){
-        process_destroy(current_process);
-        free(current_process);
+        // On a waiting queue
     } else {
         // Error
-        digitalWrite(WHITE, 1);
+        // digitalWrite(WHITE, 1);
     }
     current_process = dequeue(readyQueue);
     if (current_process == NULL){
         // all processes terminated; waiting processes are hung if they exist
         // Process_select will return 0 and we'll be back in "main"
-        // digitalWrite(WHITE, 1); -- no
     } else {
         current_process->state = RUNNING;
     }
@@ -408,51 +410,45 @@ unsigned int process_init (void (*f) (void), int n, process_t *p) // n0
 
 // Locks
 
-/*
 // Initialize a new waiting queue
 void lock_init (lock_t *l){
-	asm volatile ("cli\n\t");
 	l->holder = NULL;
-	l->headWaitingQueue = NULL;
-	l->tailWaitingQueue = NULL;
-	asm volatile ("sei\n\t");
+    l->waitingQueue = malloc(sizeof(process_queue_t));
+    if (l->waitingQueue == NULL){
+        // Error
+        // digitalWrite(WHITE, 1);
+        return;
+    }
+    queueInit(l->waitingQueue);
 }
 
 // Add you to a waiting queue
 void lock_acquire (lock_t *l){
 	asm volatile ("cli\n\t");
-    if (l->holder){
-        // Join the end of the ready queue
-				if (!l->headWaitingQueue){
-					l->headWaitingQueue = current_process;
-				}
-				else {
-					l->tailWaitingQueue->next = current_process;
-				}
-				l->tailWaitingQueue = current_process;
-				current_process->state = WAITING;
+    if (l->holder == NULL){
+        l->holder = current_process;
+    } else {
+        // Join the end of the waiting queue
+        current_process->state = WAITING;
+        enqueue(l->waitingQueue, current_process);
         yield();
     }
-    l->holder = current_process;
-		current_process->state = READY;
 	asm volatile ("sei\n\t");
 }
 
 // Pop the next person off the waiting queue if anyone there.
 void lock_release (lock_t *l){
 	asm volatile ("cli\n\t");
-
-	if (!l->headWaitingQueue){
-		l->holder = NULL;
-		return;
-	}
-	struct process_state nextHolder = l->headWaitingQueue;
-	l->headWaitingQueue = nextHolder->next;
-	l->holder = nextHolder;
-	nextHolder->state = READY;
+    if (l->waitingQueue->len == 0)
+    {
+        l->holder = NULL;
+    } else {
+        l->holder = dequeue(l->waitingQueue);
+        l->holder->state = READY;
+        enqueue(readyQueue, l->holder);
+    }
 	asm volatile ("sei\n\t");
 }
-*/
 
 
 

@@ -10,6 +10,7 @@ process_t *current_process = NULL;
 
 struct process_state {
 	unsigned int sp; /* stack pointer */
+	unsigned int sp_bot;
 	struct process_state *next; /* link to next process */
 };
 
@@ -19,7 +20,9 @@ int process_create (void (*f) (void), int n) {
 	if (!p_state){
 		return -1;
 	}
-	p_state->sp = process_init(f, n);
+	if (process_init(f, n, p_state) == 0){
+		return -1;
+    }
 	p_state->next = current_process;
 	current_process = p_state;
 	asm volatile ("sei\n\t");
@@ -241,7 +244,7 @@ __attribute__((used)) void process_timer_interrupt()
 #define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
-unsigned int process_init (void (*f) (void), int n) // n0
+unsigned int process_init (void (*f) (void), int n, process_t *p)
 {
   unsigned long stk;
   int i;
@@ -250,6 +253,7 @@ unsigned int process_init (void (*f) (void), int n) // n0
   /* Create a new process */
   n += EXTRA_SPACE + EXTRA_PAD; // n1
   stkspace = (unsigned char *) malloc (n);
+  p->sp_bot = stkspace;
 
   if (stkspace == NULL) {
     /* failed! */
@@ -286,6 +290,7 @@ unsigned int process_init (void (*f) (void), int n) // n0
   stkspace[n-EXTRA_SPACE] = SREG;
 
   stk = (unsigned int)stkspace + n - EXTRA_SPACE - 1;
+  p->sp = stk;
 
   return stk;
 }
