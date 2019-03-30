@@ -14,7 +14,7 @@
  * processes
  */
 
-enum State{RUNNING, READY, WAITING, DEAD};
+enum State{RUNNING = 1, READY = 2, WAITING = 3, DEAD = 4};
 
 struct process_state {
     unsigned int sp_bot;
