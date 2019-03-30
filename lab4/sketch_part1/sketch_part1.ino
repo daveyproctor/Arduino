@@ -5,6 +5,7 @@ void p0 (void)
     /* process 0 here */
     while(1) {
         digitalWrite(GREEN, HIGH);
+        digitalWrite(GREEN, LOW);
     }
 }
 
@@ -13,6 +14,7 @@ void p1 (void)
     /* process 1 here */
     while(1) {
         digitalWrite(YELLOW, HIGH);
+        digitalWrite(YELLOW, LOW);
     }
 }
 
@@ -21,6 +23,7 @@ void p2 (void)
     /* process 2 here */
     while(1) {
         digitalWrite(BLUE, HIGH);
+        digitalWrite(BLUE, LOW);
     }
 }
 

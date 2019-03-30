@@ -78,6 +78,7 @@ __attribute__((used)) void process_begin ()
 __attribute__((used)) void process_terminated ()
 {
   asm volatile ("cli\n\t");
+  digitalWrite(YELLOW, 1);
   // Remove current_process from queue
   struct process_state *tmp = current_process;
   free(current_process->sp);

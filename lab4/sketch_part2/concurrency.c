@@ -4,12 +4,20 @@
 #include "concurrency.h"
 
 /*
+ * Rule: any user-visible function needs to appear atomic:
+ * (disable and reenable interrupts)
+ *     * yield() counts as user-visible
+ * Any kernel-helper function should leave interrupts alone
+ */
+
+/*
  * processes
  */
 
 enum State{RUNNING, READY, WAITING, DEAD};
 
 struct process_state {
+    unsigned int sp_bot;
 	unsigned int sp; /* stack pointer */
 	struct process_state *next; /* link to next process */
 	int state;
@@ -29,6 +37,7 @@ struct process_queue {
 };
 
 process_queue_t *readyQueue = NULL;
+process_queue_t *testQueue = NULL;
 
 void queueInit(process_queue_t *Q){
     Q->len = 0;
@@ -43,14 +52,20 @@ void enqueue(process_queue_t *Q, process_t *p){
         Q->len = 1;
     } else {
         Q->tail->next = p;
+        /*
+         * Debug log: need to update tail, lest maxlen=2
+         */
+        Q->tail = p;
         Q->len++;
     }
+    p->next = NULL;
+    return;
 }
 
 struct process_t *dequeue(process_queue_t *Q){
     if (Q->len == 0) {
         return NULL;
-    } 
+    }
     process_t *popped = Q->head;
     if (Q->len == 1) {
         Q->head = NULL;
@@ -59,27 +74,67 @@ struct process_t *dequeue(process_queue_t *Q){
         Q->head = popped->next;
     }
     Q->len--;
+    popped->next = NULL;
     return popped;
 }
 
+int queueTest(int n){
+    // -1: my failure; 0: system failure; 1: success.
+    testQueue = malloc(sizeof(process_queue_t));
+    if (testQueue == NULL) {
+        return 0;
+    }
+    queueInit(testQueue);
+    for (int i = 0; i < n; i++){
+        process_t *p = malloc(sizeof(process_t));
+        if (p == NULL) {
+            return 0;
+        }
+        p->state = DEAD;
+        enqueue(testQueue, p);
+    }
+    if (testQueue->len != n){
+        return -1;
+    }
+    for (int i = 0; i < n; i++){
+        process_t *p = dequeue(testQueue);
+        if (p == NULL || p->state != DEAD){
+            return -1;
+        }
+        free(p);
+    }
+    if (testQueue->len != 0){
+        return -1;
+    }
+    free(testQueue);
+    return 1;
+}
+
 int process_create (void (*f) (void), int n) {
-	asm volatile ("cli\n\t");
+	asm volatile ("cli\n\t"); // holds until process_start->process_begin->... done
     if (readyQueue == NULL){
         readyQueue = malloc(sizeof(process_queue_t));
         queueInit(readyQueue);
     }
-	struct process_state *p_state = malloc(sizeof(process_t));
-	if (!p_state){
+	process_t *p = malloc(sizeof(process_t));
+	if (!p){
 		return -1;
 	}
-	p_state->sp = process_init(f, n);
-	p_state->state = READY;
-    enqueue(readyQueue, p_state);
+	if (process_init(f, n, p) == 0){
+		return -1;
+    }
+	p->state = READY;
+    enqueue(readyQueue, p);
 	asm volatile ("sei\n\t");
+}
+
+void process_destroy(process_t *p) {
+    free(p->sp_bot);
 }
 
 void process_start (void){
 	asm volatile ("cli\n\t");
+    digitalWrite(WHITE, 0);
     current_process = dequeue(readyQueue);
     if (current_process == NULL){
         return;
@@ -89,16 +144,18 @@ void process_start (void){
 }
 
 /*
- * Additionally need to re-queue current process; not if process_begin though.
  */
 unsigned int process_select (unsigned int cursp) {
-	if (cursp == 0){
-        // This is the stack pointer of setup.
-        // We either just began or a process has terminated.
-	}
-    if (!current_process){
+    // digitalWrite(BLUE, 1);
+    // digitalWrite(BLUE, 0); // happens just once
+	if (cursp == 0 || current_process == NULL){
+        // All processes done, let's go home to "main"
 		return 0;
 	}
+    if (current_process->state != RUNNING){
+        // Error
+        digitalWrite(WHITE, 1);
+    }
 	return current_process->sp;
 }
 
@@ -113,65 +170,61 @@ __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
  */
 __attribute__((used)) void process_begin ()
 {
-  asm volatile (
-		"cli \n\t"
-		"in r24,__SP_L__ \n\t"     // r24 <- __SP_L__
-		"sts _orig_sp_lo, r24\n\t" // _orig_sp_lo <- r24
-		"in r25,__SP_H__ \n\t"     // r25 <- __SP_H__
-		"sts _orig_sp_hi, r25\n\t" // _orig_sp_hi <- r25 
-		"ldi r24, 0\n\t"           // r24 <- 0
-		"ldi r25, 0\n\t"					 // r25 <- 0
-		"rjmp .dead_proc_entry\n\t"
-		);
+    asm volatile (
+        "cli \n\t"
+        "in r24,__SP_L__ \n\t"     // r24 <- __SP_L__
+        "sts _orig_sp_lo, r24\n\t" // _orig_sp_lo <- r24
+        "in r25,__SP_H__ \n\t"     // r25 <- __SP_H__
+        "sts _orig_sp_hi, r25\n\t" // _orig_sp_hi <- r25 
+        "ldi r24, 0\n\t"           // r24 <- 0
+        "ldi r25, 0\n\t"					 // r25 <- 0
+        "rjmp .dead_proc_entry\n\t"
+        );
 }
 
 __attribute__((used)) void process_terminated ()
 {
-  asm volatile ("cli\n\t");
-  // Remove current_process from queue
-  struct process_state *tmp = current_process;
-  free(current_process->sp);
-  if (current_process->next == NULL){
-      current_process = NULL;
-  } else {
-    current_process = current_process->next;
-  }
-  free(tmp);
-  asm volatile (
-		"cli\n\t"
-		// load in original stack pointer
-		"lds r25, _orig_sp_hi\n\t" // r25 <- _orig_sp_hi
-		"out __SP_H__, r25\n\t"
-		"lds r24, _orig_sp_lo\n\t"
-		"out __SP_L__, r24\n\t"
-		"ldi r24, lo8(0)\n\t"
-		"ldi r25, hi8(0)\n\t"
-		"rjmp .dead_proc_entry"
-		);
+    // digitalWrite(WHITE, 1); -- no
+    asm volatile ("cli\n\t");
+    current_process->state = DEAD;
+    yield();
 }
 
 void process_timer_interrupt();
 
 __attribute__((used)) void yield ()
 {
-  if (!current_process) {
-      return;
-  }
-  asm volatile ("cli\n\t");
-
-	// Move current process to end, round robin style
-	// Should work for just one process, too.
-	if (current_process->state == READY){
-		struct process_state *end = readyQueueEnd();
-		end->next = current_process;
-		end = current_process;
-		current_process = current_process->next;
-		end->next = NULL;
-	} else {
-		// Assume on a waiting queue
-		current_process = current_process->next;
-	}
-  asm volatile ("rjmp process_timer_interrupt\n\t");
+    // digitalWrite(WHITE, 1); - not repeating; not getting to yield.
+    if (current_process == NULL) {
+        // Haven't even called process_start yet
+        // digitalWrite(WHITE, 1); -- doesn't happen incorrectly
+        return;
+    }
+    asm volatile ("cli\n\t");
+    if (current_process->state == RUNNING){
+        // Case timer interrupt or genuine user yield
+        // Move current process to end, round robin style
+        // Should work for just one process, too.
+        current_process->state = READY;
+        enqueue(readyQueue, current_process);
+    } else if (current_process->state == WAITING){
+    	// On a waiting queue
+    } else if (current_process->state == DEAD){
+        process_destroy(current_process);
+        free(current_process);
+    } else {
+        // Error
+        digitalWrite(WHITE, 1);
+    }
+    current_process = dequeue(readyQueue);
+    if (current_process == NULL){
+        // all processes terminated; waiting processes are hung if they exist
+        // Process_select will return 0 and we'll be back in "main"
+        // digitalWrite(WHITE, 1); -- no
+    } else {
+        current_process->state = RUNNING;
+    }
+    asm volatile ("rjmp process_timer_interrupt\n\t");
 }
 
 __attribute__((used)) void process_timer_interrupt()
@@ -296,14 +349,13 @@ __attribute__((used)) void process_timer_interrupt()
 		"reti\n\t"); // in next_proc
 }
 
-
 /*
  * Stack: save 32 regs, +2 for entry point +2 for ret address
  */
 #define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
-unsigned int process_init (void (*f) (void), int n) // n0
+unsigned int process_init (void (*f) (void), int n, process_t *p) // n0
 {
   unsigned long stk;
   int i;
@@ -312,6 +364,7 @@ unsigned int process_init (void (*f) (void), int n) // n0
   /* Create a new process */
   n += EXTRA_SPACE + EXTRA_PAD; // n1
   stkspace = (unsigned char *) malloc (n);
+  p->sp_bot = stkspace;
 
   if (stkspace == NULL) {
     /* failed! */
@@ -348,6 +401,7 @@ unsigned int process_init (void (*f) (void), int n) // n0
   stkspace[n-EXTRA_SPACE] = SREG;
 
   stk = (unsigned int)stkspace + n - EXTRA_SPACE - 1;
+  p->sp = stk;
 
   return stk;
 }
