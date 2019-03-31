@@ -8,19 +8,16 @@ int turn = -1;
 void p0 (void)
 {
     /* process 0 here */
-    digitalWrite(GREEN, HIGH);
-    return;
     while(1) {
         lock_acquire(&l);
         // atomicity of things within lock:
         turn = 0;
         digitalWrite(GREEN, HIGH);
-        // digitalWrite(GREEN, LOW);
+        digitalWrite(GREEN, LOW);
         if (turn != 0){
             digitalWrite(WHITE, HIGH);
         }
         lock_release(&l);
-        break; // terminates light on
     }
 }
 
@@ -37,12 +34,10 @@ void p1 (void)
             digitalWrite(WHITE, HIGH);
         }
         lock_release(&l);
-        if (++j == 50000){
-            break; // termintates light off; last light looks full
-        }
     }
 }
 
+unsigned long k = 0;
 void p2 (void)
 {
     /* process 2 here */
@@ -88,7 +83,6 @@ void setup()
       Serial.println("FAIL");
       return;
     }
-    // process_start(); // doesn't work here
     if (process_create (p2, 64) < 0) {
       digitalWrite(WHITE, 1);
       Serial.println("FAIL");
@@ -97,14 +91,7 @@ void setup()
     process_start();
 }
 
-int i=0;
-
 void loop()
 {
-    /* if you get here, then all processes are either finished or
-       there is deadlock */
-    Serial.println("oops");
-    Serial.println(++i); // repeating, yes. gets here interrupts turned off.
-    return;
 }
 

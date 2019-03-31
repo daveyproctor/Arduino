@@ -105,7 +105,6 @@ int queueTest(int n){
 
 int process_create (void (*f) (void), int n) {
 	asm volatile ("cli\n\t"); // holds until process_start->process_begin->... done
-    // digitalWrite(WHITE, 1);
     if (current_process == NULL && readyQueue == NULL){
         readyQueue = malloc(sizeof(process_queue_t));
         queueInit(readyQueue);
@@ -126,8 +125,10 @@ void process_destroy(process_t *p) {
     free(p->sp_bot);
 }
 
+unsigned int begun = 0;
 void process_start (void){
 	asm volatile ("cli\n\t");
+    // begun = 1;
     digitalWrite(WHITE, 0);
 	process_begin();
 }
@@ -135,12 +136,15 @@ void process_start (void){
 /*
  */
 unsigned int process_select (unsigned int cursp) {
-    if (current_process == NULL){
+    if (begun == 0) {
         // just started; 
         if (cursp != 0) {
             // Error
-            digitalWrite(WHITE, 1);
+            // digitalWrite(WHITE, 1);
         }
+    }
+    if (current_process == NULL){
+        // pass
     } else if (current_process->state == RUNNING){
         // Case timer interrupt or genuine user yield
         // Move current process to end, round robin style
@@ -180,6 +184,7 @@ unsigned int process_select (unsigned int cursp) {
         digitalWrite(WHITE, 1);
     }
     current_process->state = RUNNING;
+    begun = 1;
 	return current_process->sp;
 }
 
@@ -220,8 +225,8 @@ void process_timer_interrupt();
 
 __attribute__((used)) void yield(void)
 {
-    if (current_process == NULL) {
-        // Haven't even called process_start yet
+    if (current_process == NULL && (begun == 0 || readyQueue->len == 0)) {
+        // main keeps getting interrupted
         return;
     }
     asm volatile ("cli\n\t");
