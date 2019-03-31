@@ -1,6 +1,7 @@
 #include "concurrency.h"
 
 #define MSGSIZE 10
+#define BUFFERSIZE 2
 
 lock_t l;
 
@@ -12,7 +13,7 @@ struct item {
 
 typedef struct buffer buffer_t;
 struct buffer {
-    unsigned int len;
+    int len;
     struct item *head;
     struct item *tail;
 };
@@ -23,6 +24,8 @@ item_t *dequeue(buffer_t *Q);
 
 buffer_t *b = NULL;
 
+item_t items[MSGSIZE];
+
 void writer (void)
 {
     unsigned int vals[MSGSIZE];
@@ -31,33 +34,47 @@ void writer (void)
     }
     for (int i = 0; i < MSGSIZE; i++){
         unsigned int nextval = vals[i];
+        item_t *nextItem = &items[i]; // malloc(sizeof(item_t));
+        if (nextItem == NULL){
+            // failing here with malloc, dunno what to say.
+            digitalWrite(WHITE, HIGH);
+        }
+        nextItem->val = nextval;
         lock_acquire(&l);
-        while (b->len > 2){
+        while (b->len == BUFFERSIZE){
+            // digitalWrite(WHITE, HIGH);
             lock_release(&l);
             lock_acquire(&l);
         }
+        enqueue(b, nextItem);
         lock_release(&l);
     }
     digitalWrite(BLUE, HIGH);
     return;
 }
 
+unsigned int readVals[MSGSIZE];
 void reader (void)
 {
-    unsigned int vals[MSGSIZE];
     for (int i = 0; i < MSGSIZE; i++){
         lock_acquire(&l);
         while (b->len == 0){
+            digitalWrite(WHITE, HIGH); // keeps turning on
+            digitalWrite(WHITE, LOW);
             lock_release(&l);
             lock_acquire(&l);
         }
-        unsigned int nextval = dequeue(b);
+        item_t *nextItem = dequeue(b);
+        unsigned int nextval = nextItem->val;
         lock_release(&l);
-        vals[i] = nextval;
+        readVals[i] = nextval;
+    }
+    if (b->len != 0){
+        // digitalWrite(WHITE, HIGH);
     }
     for (int i = 0; i < MSGSIZE; i++){
-        if (vals[i] != 2 * i){
-            digitalWrite(WHITE, HIGH);
+        if (readVals[i] != 2 * i){
+            digitalWrite(YELLOW, HIGH);
         }
     }
     digitalWrite(GREEN, HIGH);
@@ -84,9 +101,13 @@ void setup()
     delay(1000);
 
     lock_init(&l);
+    b = malloc(sizeof(buffer_t));
+    if (b == NULL){
+        digitalWrite(WHITE, HIGH);
+    }
     queueInit(b);
     if (process_create (writer, 64) < 0) {
-      digitalWrite(WHITE, 1);
+      // digitalWrite(WHITE, 1);
       Serial.println("FAIL");
       return;
     }
@@ -96,10 +117,16 @@ void setup()
       return;
     }
     process_start();
+    return;
+    // for (int i = 0; i < MSGSIZE; i++){
+    //     Serial.println(readVals[i]);
+    //     delay(100);
+    // }
 }
 
 void loop()
 {
+    // digitalWrite(YELLOW, HIGH);
 }
 
 void queueInit(buffer_t *Q){
@@ -115,9 +142,6 @@ void enqueue(buffer_t *Q, item_t *p){
         Q->len = 1;
     } else {
         Q->tail->next = p;
-        /*
-         * Debug log: need to update tail, lest maxlen=2
-         */
         Q->tail = p;
         Q->len++;
     }
@@ -127,6 +151,7 @@ void enqueue(buffer_t *Q, item_t *p){
 
 item_t *dequeue(buffer_t *Q){
     if (Q->len == 0) {
+        digitalWrite(WHITE, HIGH);
         return NULL;
     }
     item_t *popped = Q->head;

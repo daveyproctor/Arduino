@@ -111,6 +111,7 @@ int process_create (void (*f) (void), int n) {
     }
 	process_t *p = malloc(sizeof(process_t));
 	if (!p){
+      // digitalWrite(WHITE, 1);
 		return -1;
 	}
 	if (process_init(f, n, p) == 0){
@@ -119,6 +120,7 @@ int process_create (void (*f) (void), int n) {
 	p->state = READY;
     enqueue(readyQueue, p);
 	asm volatile ("sei\n\t");
+    return 0;
 }
 
 void process_destroy(process_t *p) {
@@ -450,7 +452,7 @@ void lock_release (lock_t *l){
         l->holder->state = READY;
         enqueue(readyQueue, l->holder);
     }
-    // yield(); // not needed, design choice
+    yield(); // not needed, design choice
 	asm volatile ("sei\n\t");
 }
 
