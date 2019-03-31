@@ -8,6 +8,8 @@ int turn = -1;
 void p0 (void)
 {
     /* process 0 here */
+    digitalWrite(GREEN, HIGH);
+    return;
     while(1) {
         lock_acquire(&l);
         // atomicity of things within lock:
@@ -76,16 +78,19 @@ void setup()
     delay(1000);
 
     lock_init(&l);
-    if (process_create (p2, 64) < 0) {
-      Serial.println("FAIL");
-      return;
-    }
-    // process_start(); // doesn't work here
     if (process_create (p0, 64) < 0) {
+      digitalWrite(WHITE, 1);
       Serial.println("FAIL");
       return;
     }
     if (process_create (p1, 64) < 0) {
+      digitalWrite(WHITE, 1);
+      Serial.println("FAIL");
+      return;
+    }
+    // process_start(); // doesn't work here
+    if (process_create (p2, 64) < 0) {
+      digitalWrite(WHITE, 1);
       Serial.println("FAIL");
       return;
     }

@@ -105,7 +105,8 @@ int queueTest(int n){
 
 int process_create (void (*f) (void), int n) {
 	asm volatile ("cli\n\t"); // holds until process_start->process_begin->... done
-    if (readyQueue == NULL){
+    // digitalWrite(WHITE, 1);
+    if (current_process == NULL && readyQueue == NULL){
         readyQueue = malloc(sizeof(process_queue_t));
         queueInit(readyQueue);
     }
@@ -217,7 +218,7 @@ __attribute__((used)) void process_terminated ()
 
 void process_timer_interrupt();
 
-__attribute__((used)) void yield ()
+__attribute__((used)) void yield(void)
 {
     if (current_process == NULL) {
         // Haven't even called process_start yet
