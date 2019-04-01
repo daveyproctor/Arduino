@@ -14,10 +14,12 @@
  * processes
  */
 
+// These are the states a process can be in.
 enum State{RUNNING, READY, WAITING, DEAD};
 
+// Struct for holding process information
 struct process_state {
-    unsigned int sp_bot;
+    unsigned int sp_bot; 
 	unsigned int sp; /* stack pointer */
 	struct process_state *next; /* link to next process */
 	int state;
@@ -117,18 +119,21 @@ int process_create (void (*f) (void), int n) {
 	if (process_init(f, n, p) == 0){
 		return -1;
     }
+	//signify that the program is ready to run and does not need mutual exclusion.
 	p->state = READY;
     enqueue(readyQueue, p);
 	asm volatile ("sei\n\t");
     return 0;
 }
 
-void process_destroy(process_t *p) {
+
+void process_destroy(process_t *p) { //If a process is complete, free up its space in memory.
     free(p->sp_bot);
 }
 
 unsigned int begun = 0;
 void process_start (void){
+	// Initialize the concurrency using the process_begin function.
 	asm volatile ("cli\n\t");
     // begun = 1;
     digitalWrite(WHITE, 0);
