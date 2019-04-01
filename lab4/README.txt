@@ -19,8 +19,8 @@ We use these funcitons for both our concurrency and lock implementations.
 Our processes can have four possible states in our queues:
     - RUNNING: The process is online.
     - WAITING: The process has to wait for mutual exclusion before it can proceed.
-    - READY: The process still has some work to do before queueing for mutual exclusion.
-    - DEAD: The process is finished running and no longer needs mutual exclusion.
+    - READY: The process either still has some work to do before queueing for mutual exclusion or doesn't need it at all.
+    - DEAD: The process is finished running.
 
 Our process_state structure that we use to keep track of our context-switching processes has the following components:
     - sp_bot: Bottom of that process's stack, for keeping track of malloc'd memory.
@@ -42,7 +42,7 @@ The functions we've implemented for concurrency are as follows:
 
 For locks, we create another struct, lock_state lock_t.
 This structure keeps track of the process currently holding the lock
-and the processes on a waitingQueue ready to take the lock from it once it's done.
+and the processes on a waitingQueue ready to take the lock from the current process.
 
 The functions on this structure are as follows:
     - lockInit: initializes the waitingQueue and holder structures for the lock.
