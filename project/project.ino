@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string>
 
 #define A_PIN 13
 #define A_SHARP_PIN 12
@@ -21,11 +22,13 @@
 
 struct pitchFamily
 {
+    int pitchTag;
     short centerPitch;
     short topPitch = centerPitch*(2^(1/24));
     short bottomPitch = centerPitch*(2^(-1/24));
     short goodEnoughTop = centerPitch*(2^(1/1200));
     short goodEnoughBottom = centerPitch*(2^(-1/1200));
+    string serialLabel; // What to print into the Serial Monitor.
 };
 
 /*
@@ -34,30 +37,54 @@ struct pitchFamily
     We define the base A note as 440Hz
 */
 
-pitchFamily A;  
+pitchFamily A;
+  A.pitchTag = 1;
   A.centerPitch = 440;
+  A.serialLabel = "A ";
 pitchFamily A_SHARP; 
+  A_SHARP.pitchTag = 2;
   A_SHARP.centerPitch = 466.16;
+  A_SHARP.serialLabel = "A# ";
 pitchFamily B; 
+  B.pitchTag = 3;
   B.centerPitch = 493.88;
-pitchFamily C; 
+  B.serialLabel = "B ";
+pitchFamily C;
+  C.pitchTag = 4;
   C.centerPitch = 523.25;
-pitchFamily C_SHARP; 
+  C.serialLabel = "C ";
+pitchFamily C_SHARP;
+  C_SHARP.pitchTag = 5;
   C_SHARP.centerPitch = 554.37;
-pitchFamily D; 
+  C_SHARP.serialLabel = "C# ";
+pitchFamily D;
+  D.pitchTag = 6;
   D.centerPitch = 587.33;
-pitchFamily D_SHARP; 
+  D.serialLabel = "D ";
+pitchFamily D_SHARP;
+  D_SHARP.pitchTag = 7;
   D_SHARP.centerPitch = 622.25;
-pitchFamily E; 
+  D_SHARP.serialLabel = "D# ";
+pitchFamily E;
+  E.pitchTag = 8;
   E.centerPitch = 659.25;
-pitchFamily F; 
+  E.serialLabel = "E "
+pitchFamily F;
+  F.pitchTag = 9;
   F.centerPitch = 698.46;
-pitchFamily F_SHARP; 
+  F.serialLabel = "F ";
+pitchFamily F_SHARP;
+  F_SHARP.pitchTag = 10;
   F_SHARP.centerPitch = 739.99;
+  F_SHARP.serialLabel = "F# ";
 pitchFamily G; 
+  G.pitchTag = 11;
   G.centerPitch = 783.99;
-pitchFamily G_SHARP; 
+  G.serialLabel = "G ";
+pitchFamily G_SHARP;
+  G_SHARP.pitchTag = 12;
   G_SHARP.centerPitch = 830.61;
+  G_SHARP.serialLabel = "G# "
 
 
 /* 
@@ -68,7 +95,7 @@ pitchFamily G_SHARP;
 
 void play_a()
 {
-  
+  tone(13, 440); 
 }
 
 void setup()
