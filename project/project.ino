@@ -1,10 +1,13 @@
 #include <math.h>
 #include <string>
 
+#define MIC_PIN A0 //I don't know if this works or not.
+#define SPEAKER_PIN 11
 #define A_PIN 13
 #define A_SHARP_PIN 12
 #define F_PIN 8
 #define C_PIN 7
+
 /*
     A tone is considered within a note family but out of tune
     if the note is with 50 cents sharp or flat of the desires pitch.
@@ -37,6 +40,7 @@ struct pitchFamily
     We define the base A note as 440Hz
 */
 
+//Pitch definitions
 pitchFamily A;
   A.pitchTag = 1;
   A.centerPitch = 440;
@@ -95,12 +99,22 @@ pitchFamily G_SHARP;
 
 void play_a()
 {
-  tone(13, 440); 
+  tone(13, A.centerPitch); 
 }
 
 void setup()
 {
-    attachInterupt(digitalPinToInterrupt(A_PIN),play_a,LOW);
+    pinMode(MIC_PIN, INPUT);
+    pinMode(A_PIN, INPUT_PULLUP);
+    pinMode(A_SHARP_PIN, INPUT_PULLUP);
+    pinMode(C_PIN, INPUT_PULLUP);
+    pinMode(F_PIN, INPUT_PULLUP);
+    pinMode(SPEAKER_PIN, OUTPUT);
+    
+    attachInterrupt(digitalPinToInterrupt(A_SHARP_PIN),play_asharp,LOW);
+    attachInterrupt(digitalPinToInterrupt(A_PIN),play_a,LOW);
+    attachInterrupt(digitalPinToInterrupt(F_PIN),play_f,LOW);
+    attachInterrupt(digitalPinToInterrupt(C_PIN),play_c,LOW);
   
 }
 
