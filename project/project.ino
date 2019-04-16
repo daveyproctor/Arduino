@@ -183,7 +183,7 @@ void setup()
 {
 for(int i=0;i<12;i++)
 {
-    twelveToneScale[i] = 440*pow(2,(i/12));
+    twelveToneScale[i] = 440*pow(2,((float)i/12));
 }
 
   Serial.begin(9600);
