@@ -23,7 +23,7 @@
 // Setting up Fast Fourier Transform Parameters
 
 #define SAMPLES 128 // Must be a power of 2
-#define SAMPLING_FREQ 2048 // Must be less than 1000 due to ADC limitations
+#define SAMPLING_FREQ 2048 // Must be less than 10000 due to ADC limitations
 
 unsigned int sampling_period_us;
 unsigned long microseconds;
