@@ -23,7 +23,7 @@
 // Setting up Fast Fourier Transform Parameters
 
 #define SAMPLES 128 // Must be a power of 2
-#define SAMPLING_FREQ 2048 // Must be less than 10000 due to ADC limitations
+#define SAMPLING_FREQ 2020 // Must be less than 10000 due to ADC limitations
 
 unsigned int sampling_period_us;
 unsigned long microseconds;
@@ -99,11 +99,24 @@ float goodEnoughBottom(float note, int octave){
 void setup()
 {
   // Define the center pitches.
+
+  /*
+  Our base tuning frequencies are defined according to the table at this URL:
+  https://pages.mtu.edu/~suits/notefreqs.html
+  
+  Pitch definitions in terms of Hertz: A to G#
+  More precisely, each pitch is a factor of 2^(1/12)
+  above the lower pitch.
+  A: 440   A#: 466.16   B: 493.88  C: 523.25
+  C#: 554.37  D: 587.33  D#: 622.25  E: 659.25
+  F: 698.46  F#: 739.99  G: 783.99  G#: 830.61
   for(int i=0;i<12;i++)
+  */
   {
       twelveToneScale[i] = 440*pow(2,((float)i/12));
   }
-
+  
+ 
   Serial.begin(9600);
 
   // Define inputs...
@@ -198,7 +211,7 @@ void loop() {
       FFT.Compute(waveReal, waveImag, SAMPLES, FFT_FORWARD);
       FFT.ComplexToMagnitude(waveReal, waveImag, SAMPLES);
       peak = FFT.MajorPeak(waveReal, SAMPLES, SAMPLING_FREQ);
-      // The limited memory of the Arduino means there will be some error in the FFT.
+      // The limited memory of the Arduino means there will be some error in the FFT result.
       // Corrections need to be made.
       peak = peak - peak*((double)9/440);
       /*
@@ -225,7 +238,7 @@ void loop() {
                 
                 if((peak >= goodEnoughBottom(twelveToneScale[j], octave)) && (peak <= goodEnoughTop(twelveToneScale[j], octave))) 
                 {
-                  Serial.print ("In tune");
+                  Serial.println("In tune");
                   digitalWrite(RED_PIN, LOW);
                   digitalWrite(GREEN_PIN, HIGH);
                   digitalWrite(BLUE_PIN, LOW);
@@ -251,20 +264,15 @@ void loop() {
                 {
                 Serial.print(twelveToneNames[j]);
                 // This prints cents from center
-                //Serial.println(1200*log(peak/centerPitch(twelveToneScale[j], octave))/log(2)); 
+                Serial.println(1200*log(peak/centerPitch(twelveToneScale[j], octave))/log(2)); 
                 // This prints pitch frequency
-                Serial.println(peak); 
+                //Serial.println(peak); 
                 }
                 
               }
               
           }
       }
-      
-      //Serial.println(peak);
-      //delay(20);
-
-
   peak_last = peak;
   //delay(200);
   }
