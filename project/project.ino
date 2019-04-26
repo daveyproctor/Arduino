@@ -23,7 +23,7 @@
 // Setting up Fast Fourier Transform Parameters
 
 #define SAMPLES 128 // Must be a power of 2
-#define SAMPLING_FREQ 2020 // Must be less than 10000 due to ADC limitations
+#define SAMPLING_FREQ 4000 // Must be less than 10000 due to ADC limitations
 
 unsigned int sampling_period_us;
 unsigned long microseconds;
@@ -110,13 +110,13 @@ void setup()
   A: 440   A#: 466.16   B: 493.88  C: 523.25
   C#: 554.37  D: 587.33  D#: 622.25  E: 659.25
   F: 698.46  F#: 739.99  G: 783.99  G#: 830.61
-  for(int i=0;i<12;i++)
   */
+  for(int i=0;i<12;i++)
   {
       twelveToneScale[i] = 440*pow(2,((float)i/12));
   }
   
- 
+
   Serial.begin(9600);
 
   // Define inputs...
@@ -212,13 +212,9 @@ void loop() {
       FFT.ComplexToMagnitude(waveReal, waveImag, SAMPLES);
       peak = FFT.MajorPeak(waveReal, SAMPLES, SAMPLING_FREQ);
       // The limited memory of the Arduino means there will be some error in the FFT result.
-      // Corrections need to be made.
-      peak = peak - peak*((double)9/440);
-      /*
-      Serial.println(peak);
-      Serial.println(topPitch(peak, 0));
-      Serial.println(bottomPitch(peak, 0));
-      */
+      // Corrections, determined through trial and error, need to be made.
+      peak = peak*pow(2,((float)1/24)) - pow(peak,((float)161/100))*((double)1/880);
+
       
       // Compare to see where the tone is relative to our core frequencies.
       
@@ -232,7 +228,6 @@ void loop() {
 
               //Serial.println(goodEnoughBottom(twelveToneScale[j], octave));
               //Serial.println(goodEnoughTop(twelveToneScale[j], octave));
-              
               
                 // In tune
                 
@@ -273,6 +268,7 @@ void loop() {
               
           }
       }
+      
   peak_last = peak;
   //delay(200);
   }
