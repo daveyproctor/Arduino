@@ -1,5 +1,6 @@
 # Arduino Projects
 Davey Proctor and Michael McNamara
+
 Digital Systems EENG 348 at Yale University
 
 ## Lab 0
