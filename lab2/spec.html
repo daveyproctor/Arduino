@@ -1,0 +1,217 @@
+
+<!-- saved from url=(0051)http://csl.yale.edu/~rajit/classes/eeng348/lab2.php -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>EENG 348/CPSC 338: Digital Systems</title>
+<link rel="stylesheet" href="./spec_files/std.css">
+<link rel="stylesheet" href="./spec_files/default.css">
+<script src="./spec_files/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<style> body { overflow-y: scroll; } </style>
+<style> .alttable tr:nth-child(odd) { background: #dfefff; } .alttable tr:nth-child(even) { background: #ffffff; } .alttable { border-spacing: 0 10px; } .alttable td { padding: 5px; } </style>
+</head>
+<body bgcolor="#ffffff" fgcolor="#000000">
+<table width="100%">
+<tbody><tr>
+<td width="3%">&nbsp;</td>
+<td width="94%" align="center"><table width="100%"><tbody><tr><td width="100%"><center>
+<table border="0" width="100%">
+<tbody><tr>
+<td align="right" valign="middle">
+<a href="http://csl.yale.edu/"><img src="./spec_files/yaleseas.jpg" height="75" border="0"></a></td>
+<td valign="middle" width="80%">
+<font face="helvetica,arial">
+<center>
+<font size="+3">EENG 348/CPSC 338: Digital Systems</font><br><font size="+2">Yale University</font>
+</center>
+</font></td>
+<td align="left" valign="middle">
+<a href="http://avlsi.csl.yale.edu/"><img src="./spec_files/anew2.gif" width="150" border="0"></a></td>
+</tr>
+</tbody></table><br></center>
+</td></tr><tr><td width="100%">
+<table width="100%"><tbody><tr><td width="90" valign="top"><br>
+<table>
+<tbody><tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/index.php"><font size="-1">Home</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://www.piazza.com/class"><font size="-1">Discussions</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/lectures.php"><font size="-1">Lectures</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/labs.php"><font size="-1">Labs</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/handouts.php"><font size="-1">Handouts</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/policies.php"><font size="-1">Policies</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/calendar.php"><font size="-1">Calendar</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://canvas.yale.edu/"><font size="-1">Canvas</font></a></b></td></tr>
+</tbody></table>
+</td><td width="4">&nbsp;</td><td valign="top"> 
+<h3>Lab 2: Digital I/O</h3>
+<b>Due: Feb 18, 11:59pm. Submit on Canvas.</b><br>
+<b>Weight: 10%</b>
+
+<p> <b>Goal.</b> The goal of this lab is is to use the AVR
+microcontroller to implement digital I/O, and become familiar with
+data sheets. The digital inputs we will use are push-button switches,
+and the digital outputs we will use are LEDs. (A component kit will be
+distributed in class on 2/4; if you don't have one, please contact the
+TFs or Rajit to pick it up.) To complete this lab, you will need to
+understand digital I/O in addition to completing Lab 1.
+</p>
+
+<p> Datasheets for all components in the kit are <a href="http://csl.yale.edu/~rajit/classes/eeng348/handouts.php#components">available</a>. You won't be using assembly
+language for this lab; everything should be implemented using C/C++ in
+the Arduino environment.</p>
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 1: Digital input by polling</b></td>
+</tr>
+</tbody></table>
+
+<p> The goal of this part of the lab is to implement a polling-based
+approach to reading the state of a switch.
+
+</p><ul>
+
+<li>Use the jumper wires, breadboard, and push-button switch to build
+a circuit that is connected to the <code>PD2</code> pin on the
+ATmega328P.
+
+</li><li>Use the <code>PORTD</code>, <code>PIND</code>, and
+<code>DDRD</code> I/O mapped registers to configure the pin as an
+input with a passive pull-up. (Note: the I/O mapped registers are
+conveniently mapped to variables you can directly access.)
+
+</li><li>Write code that displays the current state of the switch to the
+terminal, printing something only when the state of the switch
+changes.
+
+</li><li>The program must include code that de-bounces the switch.
+
+</li></ul>
+
+For this part, do not use the Arduino
+<code>digitalRead()</code>/<code>pinMode()</code> functions. You can
+use these functions if you want to debug your circuit on the
+breadboard, but the final implementation should not use these functions.
+
+<p></p>
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 2: Digital output: dot-matrix LED display</b></td>
+</tr>
+</tbody></table>
+
+<p> The goal of this lab is to implement digital output using the
+dot-matrix LED display. For this part, you must use the I/O mapped
+registers to configure the I/O pins and drive the outputs. Once again,
+do not use the <code>digitalWrite()</code>/<code>pinMode()</code>
+functions from the Arduino package (you can use them for debugging,
+but not for your submission).
+
+</p><ul>
+
+<li>Use the jumper wires, breadboard, resistors, two shift registers,
+and 5x7 LED matrix to wire up the LED matrix to some of the digital
+outputs on the Uno board (you can use outputs 4 to 12).
+
+<ul> 
+
+<li>The two shift registers can be used to extend the number of
+digital output pins. There is a nice tutorial on how you can do this
+<a href="https://www.rastating.com/using-a-74hc595-shift-register-with-an-arduino-uno/">online</a>. Connect
+the two registers in a chained pattern.
+
+</li><li>Make sure to use current limiting resistors (we have given you
+ten) when using the dot matrix LED display.
+
+</li></ul>
+
+</li><li> Write a program that cycles through the digits 0 to 9 on the dot matrix display.
+
+<ul> 
+
+<li>An individual LED in the display can be set by applying the
+appropriate binary pattern to the pins of the 5x7 LED matrix.
+
+</li><li> Cycling through different binary patterns will give the illusion
+of all the appropriate LEDs on the matrix being simultaneously lit.
+
+</li><li> There are many "fonts" available <a href="http://sunge.awardspace.com/glcd-sd/node4.html">online</a> that
+specify LED patterns for digits, in case you don't want to create your
+own.
+
+</li></ul>
+
+</li></ul>
+
+<p></p>
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 3: Counter and interrupts</b></td>
+</tr>
+</tbody></table>
+
+<p> In this part, we will combine the circuit from part 2 and
+interrupts. Connect the push-button to <code>PD2</code>, as in Part
+1. Instead of polling, you should read the state of the switch using
+interrupts. You will still need to de-bounce the switch state as
+before, but this should be done via interrupts and not by polling.
+For this part, you can use the Arduino
+<code>pinMode()</code>/<code>digitalWrite()</code>/etc. functions if
+you prefer.
+</p>
+
+<p> Normally we would set interrupt handlers/etc. using the syntax
+provided by the C/C++ compiler. However, the Arduino library that your
+program links against already has interrupt handlers defined.  Details
+of how the interrupt handlers are defined, as well as the
+implementation of <code>attachInterrupt()</code> and
+<code>detatchInterrupt()</code> can be found on <a href="https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/WInterrupts.c">github</a>.
+</p>
+
+<p>Use the Arduino <a href="https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/"><code>attachInterrupt()</code></a>
+function to install your interrupt handler.</p>
+
+<p>
+The display should start with digit 0. Pushing the button should increment the count shown on the display, wrapping around from 9 to 0.
+</p>
+
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; What you have to submit</b></td>
+</tr>
+</tbody></table>
+
+<p>
+You should turn in three sketches, one for each part of the lab,
+as a single zip file. A simple way to organize this would be to have
+three sketches, "sketch_part1", "sketch_part2",
+"sketch_part3". Please make sure your program is well-commented. In
+addition, for each part, provide a PDF document that includes the
+circuit schematic that you used for each part. If you want to use
+software to create a pretty schematic, there's a free software package
+called <a href="http://fritzing.org/home/">Fritzing</a> that can be used
+for this purpose, although a hand-drawn and scanned schematic is
+fine. Please upload one zip file per group.
+</p>
+
+<p>
+For this lab, we want to see a demo of Part 3. You can do this in one of two ways:
+
+</p><ul> 
+
+<li>Find either Rajit, or one of the TFs or ULAs, and show them your
+demo. In this case, include a file in your zip file called "demo"
+that contains text that says "Showed demo to
+<i>name-of-person-here</i>" so we know who saw your demo.
+
+</li><li>Alternatively, create a short video that shows Part 3 working, and
+include it as part of your submission. The file "demo" should have
+enough information so we can view your demo video. If the file isn't
+huge, you could even include the video as part of your submission.
+
+</li></ul>
+<p></p>
+
+
+</td></tr></tbody></table></td></tr><tr><td width="100%"><br>
+</td></tr></tbody></table></td><td width="3%">&nbsp;</td>
+</tr>
+</tbody></table><table noborder="" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr bgcolor="#00356b"><td width="2%"></td><td width="98%" align="left"><a href="http://www.yale.edu/"><img src="./spec_files/yale-white.png" alt="Yale"></a></td></tr></tbody></table>
+</body></html>

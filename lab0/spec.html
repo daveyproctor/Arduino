@@ -1,0 +1,193 @@
+
+<!-- saved from url=(0051)http://csl.yale.edu/~rajit/classes/eeng348/lab0.php -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>EENG 348/CPSC 338: Digital Systems</title>
+<link rel="stylesheet" href="./EENG 348_CPSC 338_ Digital Systems_files/std.css">
+<link rel="stylesheet" href="./EENG 348_CPSC 338_ Digital Systems_files/default.css">
+<script src="./EENG 348_CPSC 338_ Digital Systems_files/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<style> body { overflow-y: scroll; } </style>
+<style> .alttable tr:nth-child(odd) { background: #dfefff; } .alttable tr:nth-child(even) { background: #ffffff; } .alttable { border-spacing: 0 10px; } .alttable td { padding: 5px; } </style>
+</head>
+<body bgcolor="#ffffff" fgcolor="#000000">
+<table width="100%">
+<tbody><tr>
+<td width="3%">&nbsp;</td>
+<td width="94%" align="center"><table width="100%"><tbody><tr><td width="100%"><center>
+<table border="0" width="100%">
+<tbody><tr>
+<td align="right" valign="middle">
+<a href="http://csl.yale.edu/"><img src="./EENG 348_CPSC 338_ Digital Systems_files/yaleseas.jpg" height="75" border="0"></a></td>
+<td valign="middle" width="80%">
+<font face="helvetica,arial">
+<center>
+<font size="+3">EENG 348/CPSC 338: Digital Systems</font><br><font size="+2">Yale University</font>
+</center>
+</font></td>
+<td align="left" valign="middle">
+<a href="http://avlsi.csl.yale.edu/"><img src="./EENG 348_CPSC 338_ Digital Systems_files/anew2.gif" width="150" border="0"></a></td>
+</tr>
+</tbody></table><br></center>
+</td></tr><tr><td width="100%">
+<table width="100%"><tbody><tr><td width="90" valign="top"><br>
+<table>
+<tbody><tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/index.php"><font size="-1">Home</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://www.piazza.com/class"><font size="-1">Discussions</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/lectures.php"><font size="-1">Lectures</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/labs.php"><font size="-1">Labs</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/handouts.php"><font size="-1">Handouts</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/policies.php"><font size="-1">Policies</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/calendar.php"><font size="-1">Calendar</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://canvas.yale.edu/"><font size="-1">Canvas</font></a></b></td></tr>
+</tbody></table>
+</td><td width="4">&nbsp;</td><td valign="top"> 
+<h3>Lab 0: Getting Started</h3>
+<b>Due: Jan 22, 11:59pm. Submit on Canvas.</b><br>
+<b>Weight: 0%</b>
+
+<p> 
+<b>Goal.</b> The goal of this assignment is to install the software we will be
+using for the class to interact with the Arduino Uno, and to make sure
+you are capable of writing a simple program and running it on the Uno.
+</p>
+
+<p> The Arduino project is an open-source effort, and the popularity
+of the platform means that there are innumerable online resources
+available. The project <a href="https://www.arduino.cc/">home page</a>
+has a link to the <a href="https://www.arduino.cc/en/Main/Software">software</a> you should
+install on your computer.  </p>
+
+<p>
+<b>Precautions.</b>
+</p><ul>
+
+<li>The micro-controller boards should be handled with care.  Mis-use
+such as incorrectly connecting the boards is likely to damage the
+device.
+
+</li><li>These devices are <i>static sensitive</i>. This means that you can
+"zap" them with static electricity (a bigger problem in the winter
+months). Be careful with handling boards. Your body should be at the
+same potential as the boards to avoid damaging them.  For more
+information, check <a href="http://en.wikipedia.org/wiki/Electrostatic_sensitive_device">wikipedia</a>
+and the external links at the bottom.
+
+</li></ul>
+
+<p>
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp;Collect the hardware and setup software</b></td>
+</tr>
+</tbody></table>
+
+</p><p>
+For this lab, start by:
+</p><ul>
+
+<li>Finding a team-mate
+
+</li><li>Collect the hardware from the TFs. The hardware will be distributed
+after class on Friday January 18; you can also get it by contacting the TFs.
+The hardware consists of an Arduino Uno board and USB cable.
+
+</li><li>Install the Arduino <a href="https://www.arduino.cc/en/Main/Software">software</a> (the latest version is 1.8.8)
+</li></ul>
+<p></p>
+
+<p> The Arduino platform was designed to be accessible to people with
+very different backgrounds. This means the software tries to hide a
+lot of the details of microcontroller-based programming from the
+user. Programs are called "sketches", and while they use the C++
+language they even try to hide that from you to some extent.</p>
+
+<p> A "sketch" has to specify two functions: "setup" and
+"loop". When a new sketch is created, the Arduino interface
+automatically populates it with blank functions as a reminder.</p>
+
+<p>
+A simple model for the main program is the following code fragment:
+
+</p><pre><code class="hljs bash"> setup();
+ <span class="hljs-keyword">while</span> (1) {
+   loop();
+ }
+</code></pre>
+<p></p>
+
+<p>
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp;What you have to do</b></td>
+</tr>
+</tbody></table>
+
+</p><p> To get started, plug in your Arduino board, and start the Arduino
+software package. Navigate the menus and select the Uno board
+(Arduino/Genuino Uno), and pick the port corresponding to the Uno. (On
+my mac, it looks something like /dev/cu.usbmodem...)</p>
+
+<p>
+For the rest of this lab, run a simple program on the Uno that prints "Hello, world!" in a way that you can display it on your computer.</p>
+
+<p> This is more complicated than it sounds (we will explain how this
+really works as the class progresses), since the Uno does not have a
+display. However, it does have a way to communicate with your laptop
+through the USB cable. One nice thing about using the Arduino platform
+is that there are a number of built-in libraries that provide useful
+functionality, making it easy to get started. One of these libraries
+can be used for communication through the USB interface to a terminal
+on your laptop.</p>
+
+<p>
+Use the following function for "<code>setup()<code>":
+</code></code></p><code><code>
+
+<pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">setup</span><span class="hljs-params">()</span> </span>{
+  Serial.begin(<span class="hljs-number">9600</span>);
+  Serial.println(<span class="hljs-string">"Hello, world!"</span>);
+}
+</code></pre>
+
+<p> The "<code>loop()</code>" function can remain empty. Compile
+this sketch and upload it to the board (the "right arrow" icon).
+</p>
+
+<p> If all is well, your program will compile successfully and be
+uploaded to the board. You should see some LEDs on the board flashing
+while this is happening.</p>
+
+<p> Open the serial monitor (icon on the top right corner of the
+application). You should see "<code>Hello, world!</code>" displayed.</p>
+
+<p>
+Some comments:
+</p><ul>
+
+<li>You may see a slightly corrupted version of the "<code>Hello,
+world!</code>" string. In that case, clear the output in the serial
+monitor and hit the red reset button on the Uno. It should work
+properly this time.
+
+</li><li>The "9600" matches the "9600 baud" setting in the serial
+monitor. This means that the peak communication rate between the
+microcontroller and laptop is 9600 characters per second.
+</li></ul>
+<p></p>
+
+<p>
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; What you have to submit</b></td>
+</tr>
+</tbody></table>
+</p><p>
+Just a simple sentence in text saying "<code>We (name1, name2) successfully completed lab0!</code>"
+</p>
+<p>
+Please use one submission per team. We will use this to create groups on Canvas for future submissions.
+</p>
+
+
+</code></code></td></tr></tbody></table></td></tr><tr><td width="100%"><br>
+</td></tr></tbody></table></td><td width="3%">&nbsp;</td>
+</tr>
+</tbody></table><table noborder="" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr bgcolor="#00356b"><td width="2%"></td><td width="98%" align="left"><a href="http://www.yale.edu/"><img src="./EENG 348_CPSC 338_ Digital Systems_files/yale-white.png" alt="Yale"></a></td></tr></tbody></table>
+</body></html>

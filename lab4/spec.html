@@ -1,0 +1,328 @@
+
+<!-- saved from url=(0051)http://csl.yale.edu/~rajit/classes/eeng348/lab4.php -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>EENG 348/CPSC 338: Digital Systems</title>
+<link rel="stylesheet" href="./spec_files/std.css">
+<link rel="stylesheet" href="./spec_files/default.css">
+<script src="./spec_files/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<style> body { overflow-y: scroll; } </style>
+<style> .alttable tr:nth-child(odd) { background: #dfefff; } .alttable tr:nth-child(even) { background: #ffffff; } .alttable { border-spacing: 0 10px; } .alttable td { padding: 5px; } </style>
+</head>
+<body bgcolor="#ffffff" fgcolor="#000000">
+<table width="100%">
+<tbody><tr>
+<td width="3%">&nbsp;</td>
+<td width="94%" align="center"><table width="100%"><tbody><tr><td width="100%"><center>
+<table border="0" width="100%">
+<tbody><tr>
+<td align="right" valign="middle">
+<a href="http://csl.yale.edu/"><img src="./spec_files/yaleseas.jpg" height="75" border="0"></a></td>
+<td valign="middle" width="80%">
+<font face="helvetica,arial">
+<center>
+<font size="+3">EENG 348/CPSC 338: Digital Systems</font><br><font size="+2">Yale University</font>
+</center>
+</font></td>
+<td align="left" valign="middle">
+<a href="http://avlsi.csl.yale.edu/"><img src="./spec_files/anew2.gif" width="150" border="0"></a></td>
+</tr>
+</tbody></table><br></center>
+</td></tr><tr><td width="100%">
+<table width="100%"><tbody><tr><td width="90" valign="top"><br>
+<table>
+<tbody><tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/index.php"><font size="-1">Home</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://www.piazza.com/class"><font size="-1">Discussions</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/lectures.php"><font size="-1">Lectures</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/labs.php"><font size="-1">Labs</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/handouts.php"><font size="-1">Handouts</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/policies.php"><font size="-1">Policies</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/calendar.php"><font size="-1">Calendar</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://canvas.yale.edu/"><font size="-1">Canvas</font></a></b></td></tr>
+</tbody></table>
+</td><td width="4">&nbsp;</td><td valign="top"> 
+<h3>Lab 4: Implementing concurrency</h3>
+<b>Due: April 1, 11:59pm. Submit on Canvas.</b><br>
+<b>Weight: 15%</b>
+
+<p>The purpose of this lab is to use the AVR microcontroller to implement processes and concurrency.</p>
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 1: Concurrency</b></td>
+</tr>
+</tbody></table>
+
+<p> For this part, you will be implementing processes on the Arduino
+platform. We suggest that you first do this exercise on paper, before
+writing any code. It is important that you have confidence in your
+implementation plan before starting out, because it is challenging to
+use standard debugging methods to find errors.</p>
+
+<p>
+The following is an example program that uses concurrency:</p>
+
+<pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">p1</span> <span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  <span class="hljs-comment">/* process 1 here */</span>
+  <span class="hljs-keyword">return</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">p2</span> <span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+<span class="hljs-comment">/* process 2 here */</span>
+ <span class="hljs-keyword">return</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">setup</span><span class="hljs-params">()</span>
+</span>{
+  <span class="hljs-keyword">if</span> (process_create (p1, <span class="hljs-number">64</span>) &lt; <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">return</span>;
+  }
+  <span class="hljs-keyword">if</span> (process_create (p2, <span class="hljs-number">64</span>) &lt; <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">return</span>;
+  }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">loop</span><span class="hljs-params">()</span>
+</span>{
+  process_start();
+  <span class="hljs-comment">/* if you get here, then all processes are either finished or
+     there is deadlock */</span>
+  <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) ;
+}
+</code></pre>
+
+<p> Processes will be represented by a data structure called
+<code>process_t</code> that you have to define. The minimal
+implementation is:</p>
+
+<pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">process_state</span> {</span>
+        <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> sp; <span class="hljs-comment">/* stack pointer */</span>
+        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">process_state</span> *<span class="hljs-title">next</span>;</span> <span class="hljs-comment">/* link to next process */</span>
+   };
+</code></pre>
+
+<p>
+Augment this as necessary to implement the lab. There are some nice
+tutorials online that explain how to implement a <a href="https://www.learn-c.org/en/Linked_lists">linked list</a> data structure.</p>
+
+<p>
+Your implementation must always maintain a global variable</p>
+<pre><code class="hljs cpp"><span class="hljs-keyword">process_t</span> *current_process;
+</code></pre>
+
+<p> which points to the currently running process. This variable
+should be set to <code>NULL</code> when a process terminates, and
+should also be <code>NULL</code> until <code>process_start()</code>
+(see below) is called.</p>
+
+<p>
+Implement the following functions:
+
+</p><ol>
+<li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">process_create</span> <span class="hljs-params">(<span class="hljs-keyword">void</span> (*f) (<span class="hljs-keyword">void</span>), <span class="hljs-keyword">int</span> n)</span></span>;</code></pre>
+
+    This function creates a process that starts at function
+    <code>f()</code>, with an initial stack size that can hold n
+    bytes. This function should return -1 on an error, and 0 on
+    success. The implementation of this function may require that you
+    allocate memory for a <code>process_t</code> structure, and you
+    can use <code>malloc()</code> for this purpose. Remember that
+    <code>malloc()</code> returns <code>NULL</code> if it could not
+    allocate the requested memory. To help you with stack
+    manipulation, we provide function <code>process_init</code>
+    (detailed below).
+
+</li><li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">process_start</span> <span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;</code></pre>
+
+    This function starts the execution of concurrent processes. This
+    function must initialize any data structures you need to implement
+    concurrency, and start the execution of the first ready
+    process. You can start the execution of the first process by
+    calling the function <code>process_begin ()</code> that we have
+    provided. Note that <code>process_begin()</code> will call a
+    function that you have to implement called <code>process_select</code>
+    (detailed below).
+
+</li><li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> <span class="hljs-title">process_select</span> <span class="hljs-params">(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> cursp)</span></span>;</code></pre>
+
+    The code we provide will call <code>process_select()</code> with
+    interrupts disabled. The argument to <code>process_select()</code>
+    is the value of the stack pointer for the currently running
+    process. If there are no currently running processes, the argument
+    will be 0. If the currently running process has terminated, the
+    argument to <code>process_select()</code> will also be 0. If there
+    is no process ready to execute, <code>process_select()</code>
+    should return 0; if there is a ready process,
+    <code>process_select()</code> must return the value of the stack
+    pointer for the next ready process.
+
+</li></ol>
+
+<p> As discussed in class, timer interrupts will be used to switch
+between running processes. The Arduino libraries already provide
+implementations of a timer interrupt, and the timer interrupt is used
+to keep track of the elapsed time (e.g. for use by functions like
+<code>millis()</code> in the Arduino library). We will modify the core
+Arduino library to also include a call to a context switch routine. To
+do this:
+</p><ul>
+
+<li>Find the location of <code>wiring.c</code> within your Arduino
+installation. (On my mac, it is in
+<code>/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino/wiring.c</code>)
+
+</li><li>Apply the following <a href="http://csl.yale.edu/~rajit/classes/eeng348/files/wiring_c.patch">patch</a> to
+the file. On my mac, that corresponds to using the Terminal, going to
+the directory that contains <code>wiring.c</code>, and saying
+<pre><code class="hljs">patch &lt; wiring_c.patch</code></pre> 
+
+</li><li>If you are using an older version of the Arduino system, the
+patch may fail. In that case, try the following <a href="http://csl.yale.edu/~rajit/classes/eeng348/files/wiring_c_old.patch">older patch file</a> instead. Note that if the patch command fails,
+you will need to restore <code>wiring.c</code> from <code>wiring.c.orig</code>
+before trying the older patch file.
+
+</li><li>You should get a
+message that says that the patch was successfully applied.
+</li></ul>
+
+<p> The patch calls the function <code>yield()</code> periodically by
+modifying the code for the timer interrupt vector.</p>
+
+
+<p> We provide a number of helper functions. Make sure you go through
+the code and understand how they work.
+
+</p><ol>
+<li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> <span class="hljs-title">process_init</span> <span class="hljs-params">(<span class="hljs-keyword">void</span> (*f) (<span class="hljs-keyword">void</span>), <span class="hljs-keyword">int</span> n)</span></span>;</code></pre>
+
+   This function allocates a new stack of size at least
+   <code>n</code>, initializes it for the process, and returns the
+   value of the stack pointer. The function returns 0 if the stack
+   could not be allocated.
+
+</li><li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">yield</span> <span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;</code></pre>
+
+    An implementation of <code>yield()</code>, which invokes the
+    context switch and indirectly calls your implementation of
+    <code>process_select()</code>.
+
+</li><li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">process_begin</span> <span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;</code></pre>
+
+     This starts the concurrency, by calling your implementation of
+     <code>process_select()</code> to pick the first process to
+     run. It will be called with the argument of 0, since there is no
+     currently running process.
+
+</li><li>In your implementation of <code>process_create()</code> (and acquire/release in part 2), you might find that you need to enforce mutual exclusion on 
+a short sequence of code. You can do this by disabling interrupts, and re-enabling interrupts at the end of the code sequence. (This can be viewed as a single global "micro lock" used to create larger atomic operations.)
+
+</li></ol>
+
+<p>
+ The lab support files are available <a href="http://csl.yale.edu/~rajit/classes/eeng348/files/concurrency.zip">here</a>. The file
+ <code>concurrency.c</code> contains the implementation of the
+ provided functions, including inline assembly. The file
+ <code>concurrency.h</code> has the prototypes for both the functions
+ we provide as well as the functions that you have to implement.
+</p>
+
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 2: Locks</b></td>
+</tr>
+</tbody></table>
+
+<p> For this part, you will implement locks on the Arduino
+platform. Implement a data structure for locks, of the form
+</p><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">lock_state</span> {</span>
+        ...   <span class="hljs-comment">/* your implementation goes here */</span>
+   };
+</code></pre>
+The three functions to be implemented are:
+
+<ol>
+<li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">lock_init</span> <span class="hljs-params">(<span class="hljs-keyword">lock_t</span> *l)</span></span>;</code></pre>
+
+   This is called to initialize the lock data structure.
+
+</li><li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">lock_acquire</span> <span class="hljs-params">(<span class="hljs-keyword">lock_t</span> *l)</span></span>;</code></pre>
+
+    The process should acquire the lock if it is free; otherwise it
+    should block. Remember, you can switch execution to another
+    process by calling the <code>yield()</code> function, which will
+    indirectly call your implementation of
+    <code>process_select()</code> to pick the next ready process.
+
+</li><li><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">lock_release</span> <span class="hljs-params">(<span class="hljs-keyword">lock_t</span> *l)</span></span>;</code></pre>
+
+    This releases the lock.
+</li></ol>
+
+Note that you will likely have to modify the way your process queues
+work, since now <code>process_select()</code> might be called with an
+argument that is a stack pointer, but for a process that is
+blocked/waiting rather than ready.
+<p></p>
+ 
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; What you have to submit</b></td>
+</tr>
+</tbody></table>
+
+<p>
+You should turn in two sketches, one for each part of the lab, as a
+single zip file. A simple way to organize this would be to have two
+sketches, <code>sketch_part1</code> and <code>sketch_part2</code>.
+</p>
+
+<p> For each part, provide a number of test cases to demonstrate that
+your concurrency implementation works. In addition, you should provide
+a writeup as part of your zip file that explains how you implemented
+each part of the lab, along with supporting comments in your
+implementation.  </p>
+
+<p> You can also create a more visual test case. For part 1:</p>
+
+<ul> 
+
+<li>Use a schematic where a collection of digital pins are connected
+    to separate LEDs. You can use the 5x7 dot-matrix display for this
+    purpose, selecting a fixed column of LEDs and controlling the
+    different LEDs in the column with different digital pins.
+
+</li><li>Separate processes can control each LED, providing a simple output
+    mechanism that can be used to test your implementation.
+</li></ul>
+
+ You can also use the Serial interface, but this is a little trickier because:
+<ul>
+
+<li>The serial ports are a shared resource, so you need to ensure mutual exclusion. 
+
+</li><li>The way the Serial interface on the Arduino works is that the 
+<a href="https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/main.cpp">main program loop</a> looks like this:
+<pre><code class="hljs bash"><span class="hljs-keyword">for</span> (;;) {
+    loop();
+    <span class="hljs-keyword">if</span> (serialEventRun) serialEventRun();
+}
+</code></pre>
+</li></ul>
+
+In other words, for the Serial interface to work properly, your
+program has to periodically invoke that if-statement.
+
+<p> For a visual test case for locks, you can use the SPI
+display. Accessing the SPI display is a shared variable operation (and
+hence, should be made atomic), so you can use locks to do that.
+Finally, you can draw two bouncing balls with concurrent processes.
+</p>
+
+
+
+</td></tr></tbody></table></td></tr><tr><td width="100%"><br>
+</td></tr></tbody></table></td><td width="3%">&nbsp;</td>
+</tr>
+</tbody></table><table noborder="" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr bgcolor="#00356b"><td width="2%"></td><td width="98%" align="left"><a href="http://www.yale.edu/"><img src="./spec_files/yale-white.png" alt="Yale"></a></td></tr></tbody></table>
+</body></html>

@@ -1,0 +1,186 @@
+
+<!-- saved from url=(0051)http://csl.yale.edu/~rajit/classes/eeng348/lab1.php -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>EENG 348/CPSC 338: Digital Systems</title>
+<link rel="stylesheet" href="./spec_files/std.css">
+<link rel="stylesheet" href="./spec_files/default.css">
+<script src="./spec_files/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<style> body { overflow-y: scroll; } </style>
+<style> .alttable tr:nth-child(odd) { background: #dfefff; } .alttable tr:nth-child(even) { background: #ffffff; } .alttable { border-spacing: 0 10px; } .alttable td { padding: 5px; } </style>
+</head>
+<body bgcolor="#ffffff" fgcolor="#000000">
+<table width="100%">
+<tbody><tr>
+<td width="3%">&nbsp;</td>
+<td width="94%" align="center"><table width="100%"><tbody><tr><td width="100%"><center>
+<table border="0" width="100%">
+<tbody><tr>
+<td align="right" valign="middle">
+<a href="http://csl.yale.edu/"><img src="./spec_files/yaleseas.jpg" height="75" border="0"></a></td>
+<td valign="middle" width="80%">
+<font face="helvetica,arial">
+<center>
+<font size="+3">EENG 348/CPSC 338: Digital Systems</font><br><font size="+2">Yale University</font>
+</center>
+</font></td>
+<td align="left" valign="middle">
+<a href="http://avlsi.csl.yale.edu/"><img src="./spec_files/anew2.gif" width="150" border="0"></a></td>
+</tr>
+</tbody></table><br></center>
+</td></tr><tr><td width="100%">
+<table width="100%"><tbody><tr><td width="90" valign="top"><br>
+<table>
+<tbody><tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/index.php"><font size="-1">Home</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://www.piazza.com/class"><font size="-1">Discussions</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/lectures.php"><font size="-1">Lectures</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/labs.php"><font size="-1">Labs</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/handouts.php"><font size="-1">Handouts</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/policies.php"><font size="-1">Policies</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://csl.yale.edu/~rajit/classes/eeng348/calendar.php"><font size="-1">Calendar</font></a></b></td></tr>
+<tr><td align="right"><b><a href="http://canvas.yale.edu/"><font size="-1">Canvas</font></a></b></td></tr>
+</tbody></table>
+</td><td width="4">&nbsp;</td><td valign="top"> 
+<h3>Lab 1: Assembly language programming</h3>
+<b>Due: Feb <strike>2</strike> 4, 11:59pm. Submit on Canvas.</b><br>
+<b>Weight: 10%</b>
+
+<p> <b>Goal.</b> The goal of this lab is to give you some experience
+writing assembly language programs for the AVR microcontroller. To
+successfully complete the lab, you will need to understand:
+
+</p><ul>
+<li>The AVR instruction set
+</li><li>The Arduino programming environment (i.e. lab 0)
+</li><li>Calling conventions
+</li></ul>
+<p></p>
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 1: Getting started with assembly</b></td>
+</tr>
+</tbody></table>
+
+<p> To write assembly in the unmodified Arduino environment, we will
+use a construct that is built into the C++ compiler that is invoked to
+compile your program. We can mix assembly language and C++ directly by
+using the "<code>asm</code>" directive. The flavor we use is
+sometimes called "<code>asm volatile</code>", and by using the
+keyword "<code>volatile</code>" we are telling the compiler not to
+touch the assembly language sequence that has been specified--i.e. to
+perform no optimizations.</p>
+
+<p> A template Arduino sketch for assembly language programming is
+provided (<a href="http://csl.yale.edu/~rajit/classes/eeng348/files/sketch_asm.zip">zip file</a>). The
+"<code>.ino</code>" file contains the driver, which can be used to
+output values using the serial monitor. The file that should contain
+the assembly language is "<code>testasm.cpp</code>", which you can
+edit with any text editor directly.</p>
+
+<p> The example sketch in the zip file ends with a loop that
+continuously blinks the built-in LED on the Uno. This is just a simple
+sanity check to make sure that your assembly language program ran
+properly and didn't mess up the stack.</p>
+
+<p> For this part, write an assembly language program that adds two
+numbers. The two numbers to be added are the unsigned 8-bit integers
+"<code>a</code>" and "<code>b</code>" (see the
+"<code>testasm</code>" function), and the result should be a 16-bit
+value corresponding to their sum. In this part, you will be saving and
+restoring any register being modified (see the instructions in
+<code>testasm</code> function). (Hint: you will need to use the carry
+flag.)</p>
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 2: Procedures</b></td>
+</tr>
+</tbody></table>
+
+<p>Implement the following two functions in assembly, respecting all calling conventions.</p>
+
+<pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> <span class="hljs-title">sumval</span><span class="hljs-params">(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> a, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> b)</span>
+</span>{
+    <span class="hljs-keyword">return</span> a+b;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> <span class="hljs-title">diffval</span><span class="hljs-params">(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> a, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> b)</span>
+</span>{
+   <span class="hljs-keyword">if</span> (a &gt; b) {
+      <span class="hljs-keyword">return</span> a-b;
+   }
+   <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">return</span> b-a;
+   }
+}
+</code></pre>
+
+<p>
+Finally, the main program in assembly language should set the return
+registers (<code>r25:r24</code>, see the template) to the value
+"<code>sumval(a,b)+diffval(a,b)</code>", using function calls to
+invoke the two functions and combine their return values.</p>
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; Part 3: Recursion</b></td>
+</tr>
+</tbody></table>
+
+<p>
+The <a href="https://en.wikipedia.org/wiki/Fibonacci_number">Fibonacci
+sequence</a> is defined by the recursion F<sub>0</sub> = 0,
+F<sub>1</sub> = 1, and F<sub>n</sub> = F<sub>n-1</sub> +
+F<sub>n-2</sub> for n&gt;1. A simple way to compute the nth Fibonacci
+number is the following C program (which also returns zero for
+negative arguments):</p>
+
+<pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> <span class="hljs-title">fib</span><span class="hljs-params">(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> n)</span>
+</span>{
+    <span class="hljs-keyword">if</span> (n == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">if</span> (n == <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">return</span> fib(n<span class="hljs-number">-1</span>)+fib(n<span class="hljs-number">-2</span>);
+}
+</code></pre>
+
+<p> Implement this recursive function using assembly language. Your
+implementation <u>must use recursion</u>.  The result of the call to
+<code>fib()</code> should be displayed on the serial monitor. Your
+program should be able to work for any Fibonacci number that can be
+represented by an 8-bit value. Include your test cases in your
+submission as well. Use the template from part 1 for this part. For
+simplicity, you can simply ignore the second argument to the
+function. For the more adventurous, feel free to modify the
+"<code>asm</code>" directive to only use one argument.</p>
+
+
+<table border="0" cellspacing="4" cellpadding="2" width="100%">
+<tbody><tr bgcolor="#aaaacc" valign="center"><td><b>&nbsp; What you have to submit</b></td>
+</tr>
+</tbody></table>
+
+<p> You should turn in three sketches, one for each part of the lab,
+as a single zip file. The zip file should be submitted through Canvas,
+with one submission per team. </p>
+
+<p> The zip file should contain three sketches,
+"<code>sketch_part1</code>", "<code>sketch_part2</code>",
+"<code>sketch_part3</code>" that are folders containing the
+"<code>.ino</code>" file and the "<code>testasm.{cpp,h}</code>"
+files. Include a plain text file called "<code>README</code>" as
+part of your submission, where you can provide any information you
+like to the teaching staff grading the lab.</p>
+
+<p> Please make sure your assembly language program is
+well-commented. In particular, for any program that includes
+functions, your comments should describe the stack layout (i.e. a
+detailed description of the stack frame for each function).</p>
+
+<p>
+The sketches should also include a reasonable set of test cases.
+</p>
+
+
+</td></tr></tbody></table></td></tr><tr><td width="100%"><br>
+</td></tr></tbody></table></td><td width="3%">&nbsp;</td>
+</tr>
+</tbody></table><table noborder="" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr bgcolor="#00356b"><td width="2%"></td><td width="98%" align="left"><a href="http://www.yale.edu/"><img src="./spec_files/yale-white.png" alt="Yale"></a></td></tr></tbody></table>
+</body></html>
